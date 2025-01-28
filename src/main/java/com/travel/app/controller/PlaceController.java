@@ -1,4 +1,4 @@
-package com.travel.controller;
+package com.travel.app.controller;
 
 import java.util.List;
 
@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.travel.service.PlaceService;
-import com.travel.model.Place;
+import com.travel.app.model.Place;
+import com.travel.app.service.PlaceService;
 @RestController
 @RequestMapping("/api/places")
 public class PlaceController {
