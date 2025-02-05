@@ -14,5 +14,6 @@ public interface BaseService<T, ID> {
 	T save(T entity);
 	List<T> saveAll(List<T> entities);
 	void deleteById(ID id);
+	void deleteAll();
 	
 }

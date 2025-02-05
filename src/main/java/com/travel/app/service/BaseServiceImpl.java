@@ -35,6 +35,12 @@ public abstract class BaseServiceImpl<T, ID> implements BaseService<T, ID> {
 	}
 	
 	@Override
+	public T save(T entity)
+	{
+		return repository.save(entity);
+	}
+	
+	@Override
 	public List<T> saveAll(List<T> entities)
 	{
 		return repository.saveAll(entities);
@@ -44,6 +50,12 @@ public abstract class BaseServiceImpl<T, ID> implements BaseService<T, ID> {
 	public void deleteById(ID id)
 	{
 		repository.deleteById(id);
+	}
+	
+	@Override
+	public void deleteAll()
+	{
+		repository.deleteAll();
 	}
 	
 }
