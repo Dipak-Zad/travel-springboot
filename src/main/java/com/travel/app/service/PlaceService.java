@@ -12,9 +12,10 @@ public interface PlaceService {
 	List<Place> saveAllPlace(List<PlaceDTO> placesDTO);
 	Optional<Place> findPlaceById(Long id);
 	//find place by other field
+	Optional<Place> findPlaceByNameAndLocation(String pName, String pLocation);
 	List<Place> findAllPlaces();
 	//find all pageable 
-	Place updatePlace(PlaceDTO placeDTO, Long id);
+	Place updatePlace(Long id, PlaceDTO placeDTO);
 	//custom update all query
 	void deletePlaceById(Long id);
 	void deleteAllPlaces();

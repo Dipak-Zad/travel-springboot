@@ -29,12 +29,15 @@ public class PlaceServiceImpl implements PlaceService {
 	{
 		try
 		{
+			//String pName = placeDTO.get
+			//if()
 			Place plc = modelMapper.map(placeDTO, Place.class);
 			plc = PlaceRepo.save(plc);
 			return plc == null ? null : plc;	
 		}
 		catch(Exception e)
 		{
+			//throw new CustomException("Error saving place: "+e.getMessage());
 			e.printStackTrace();
 		}
 		
@@ -94,7 +97,7 @@ public class PlaceServiceImpl implements PlaceService {
 	}
 	
 	@Override
-	public Place updatePlace(PlaceDTO placeDTO, Long id)
+	public Place updatePlace(Long id, PlaceDTO placeDTO)
 	{
 		try
 		{
@@ -137,6 +140,20 @@ public class PlaceServiceImpl implements PlaceService {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	@Override
+	public Optional<Place> findPlaceByNameAndLocation(String pName, String pLocation)
+	{
+		try{
+			Optional<Place> plc = PlaceRepo.findPlaceByNameAndLocation(pName, pLocation);
+			return plc == null ? null : plc;
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
 	}
 	
 //	private Place DtoToPlace(PlaceDTO placeDTO) {
