@@ -4,8 +4,10 @@ import java.util.List;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+
 
 @Getter
 @Setter
@@ -16,9 +18,9 @@ public class PlaceDTO {
 	@NotBlank(message = "place's availability status is required")
 	private Boolean availability;
 	@NotBlank(message = "place's type is required")
-	private Long place_type;
+	private String place_type;
 	@NotNull(message = "place's location is required")
-	private List<String> location;
+	private String place_address;
 	private String description;
 	private String status;
 	

@@ -16,6 +16,6 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
 
 	Page<Place> findByNameContainingIgnoreCase(String name, Pageable pageable);
 	
-	@Query("SELECT p FROM place p WHERE p.place_name = :place_name AND p.location = :location")
-	Optional<Place> findPlaceByNameAndLocation(@Param("place_name") String place_name,@Param("location") String place_location);
+	@Query("SELECT p FROM place p WHERE p.place_name = :place_name AND p.address = :address")
+	Optional<Place> findPlaceByNameAndAddress(@Param("place_name") String place_name,@Param("address") String place_address);
 }

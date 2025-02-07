@@ -19,8 +19,9 @@ public class Place {
 	private Long id;
 	private String place_name;
 	private Boolean availability; //true = avail/false = unavail
-	private Long place_type;
-	private List<String> location;
+	private String place_type;
+	private String place_address; 
+	//private List<String> location; //coordinates should be saved , will try later on 
 	private String description;
 	@Column(nullable=false)
 	private String status="ACTIVE";

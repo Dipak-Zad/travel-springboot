@@ -8,8 +8,11 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.travel.app.dto.PlaceDTO;
+import com.travel.app.exception.DuplicateEntityException;
+import com.travel.app.exception.SaveEntityException;
 import com.travel.app.model.Place;
 import com.travel.app.repository.PlaceRepository;
 
@@ -29,16 +32,31 @@ public class PlaceServiceImpl implements PlaceService {
 	{
 		try
 		{
-			//String pName = placeDTO.get
-			//if()
-			Place plc = modelMapper.map(placeDTO, Place.class);
-			plc = PlaceRepo.save(plc);
-			return plc == null ? null : plc;	
+			String pName = placeDTO.getPlace_name();
+			String pAddress = placeDTO.getPlace_address();
+ 			Optional<Place> pCheck = PlaceRepo.findPlaceByNameAndAddress(pName, pAddress);
+ 			Place plc = new Place();
+			if(pCheck != null)
+			{
+				plc = modelMapper.map(placeDTO, Place.class);
+				plc = PlaceRepo.save(plc);
+				if(plc != null)
+				{
+					throw new DuplicateEntityException("Place already exists");
+				}
+				else
+				{
+					//return plc == null ? null : plc;
+					return plc;
+					
+				}
+			} 
+			
 		}
 		catch(Exception e)
 		{
-			//throw new CustomException("Error saving place: "+e.getMessage());
-			e.printStackTrace();
+			throw new SaveEntityException("Failed to save entity");
+			//e.printStackTrace();
 		}
 		
 		return null;
