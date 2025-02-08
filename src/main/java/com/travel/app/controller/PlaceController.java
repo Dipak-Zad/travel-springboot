@@ -32,7 +32,8 @@ public class PlaceController {
 	public ResponseEntity<ApiResponse<Place>> savePlace(@Valid @RequestBody PlaceDTO placeDTO)
 	{
 		Place place = PlaceServ.saveSinglePlace(placeDTO);
-		return ResponseEntity.status(HttpStatus.CREATED).body(new ApiResponse<>("Success", "New place saved successfully", place));
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new ApiResponse<>("Success", "New place saved successfully", place));
 	}
 	
 	@GetMapping
@@ -60,6 +61,6 @@ public class PlaceController {
 	public ResponseEntity<ApiResponse<Void>> deletePlace(@PathVariable Long p_id)
 	{
 		PlaceServ.deletePlaceById(p_id);
-		return ResponseEntity.ok(new ApiResponse<>("Success", "Palce deleted succesfully", null));
+		return ResponseEntity.ok(new ApiResponse<>("Success", "Place deleted succesfully", null));
 	}
 }

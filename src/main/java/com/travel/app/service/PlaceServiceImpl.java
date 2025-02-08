@@ -36,30 +36,33 @@ public class PlaceServiceImpl implements PlaceService {
 			String pAddress = placeDTO.getPlace_address();
  			Optional<Place> pCheck = PlaceRepo.findPlaceByNameAndAddress(pName, pAddress);
  			Place plc = new Place();
-			if(pCheck != null)
+			if(pCheck == null)
 			{
 				plc = modelMapper.map(placeDTO, Place.class);
 				plc = PlaceRepo.save(plc);
 				if(plc != null)
 				{
-					throw new DuplicateEntityException("Place already exists");
+					//return plc == null ? null : plc;
+					return plc;
 				}
 				else
 				{
-					//return plc == null ? null : plc;
-					return plc;
-					
+					throw new SaveEntityException("Failed to save place");	
 				}
-			} 
+			}
+			else
+			{
+				throw new DuplicateEntityException("Place with name '"+placeDTO.getPlace_name()+
+													"'at location '"+placeDTO.getPlace_address()+"' already exists.");	
+			}
 			
 		}
 		catch(Exception e)
 		{
-			throw new SaveEntityException("Failed to save entity");
+			throw new SaveEntityException("Failed to save place");
 			//e.printStackTrace();
 		}
 		
-		return null;
 	}
 	
 	@Override
@@ -68,20 +71,44 @@ public class PlaceServiceImpl implements PlaceService {
 		try
 		{
 			List<Place> places = new ArrayList<Place>();
-			for(PlaceDTO tempPlcDTO : placesDTO)
+			Optional<Place> OptPlace = null;
+			String pName,pAddress;
+			for(PlaceDTO plcDTO : placesDTO)
 			{
-				Place tempPlc = modelMapper.map(tempPlcDTO, Place.class);
-				places.add(tempPlc);
+				pName = plcDTO.getPlace_name();
+				pAddress = plcDTO.getPlace_address();
+				OptPlace = PlaceRepo.findPlaceByNameAndAddress(pName, pAddress);
+				if(OptPlace==null)
+				{
+					Place tempPlc = modelMapper.map(plcDTO, Place.class);
+					places.add(tempPlc);
+				}
+				else
+				{
+					throw new DuplicateEntityException("Place with name '"+plcDTO.getPlace_name()+
+							"'at location '"+plcDTO.getPlace_address()+"' already exists.");
+				}
+				
 			}
+
 			places = PlaceRepo.saveAll(places);
-			return places == null ? null : places; 
+			if(places != null)
+			{
+				return places;
+			}
+			else
+			{
+				throw new SaveEntityException("Failed to save given places");
+			}
+			//return places == null ? null : places; 
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new SaveEntityException("Failed to save given places");
+			//e.printStackTrace();
 		}
 		
-		return null;
+		//return null;
 	}
 	
 	@Override
@@ -90,13 +117,19 @@ public class PlaceServiceImpl implements PlaceService {
 		try
 		{
 			Optional<Place> plc = PlaceRepo.findById(id);
-			return plc == null ? null : plc;
+			if(plc!=null)
+			{
+				return plc;
+			}
+			else
+			{
+				throw new EntityNotFoundException("Place with '"+id+"' not found");
+			}
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new EntityNotFoundException("Place with '"+id+"' not found");
 		}
-		return null;
 	}
 	
 	@Override
@@ -109,9 +142,8 @@ public class PlaceServiceImpl implements PlaceService {
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new EntityNotFoundException("Failed to All places");
 		}
-		return null;
 	}
 	
 	@Override
@@ -120,18 +152,20 @@ public class PlaceServiceImpl implements PlaceService {
 		try
 		{
 			Place plc = PlaceRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("No place found with ID "+id));
-			if(plc!=null)
+			if(plc==null)
 			{
 				plc = modelMapper.map(placeDTO, Place.class);
+				return plc;
 			}
-			
-			return plc == null ? null : plc;
+			else
+			{
+				throw new SaveEntityException("Failed to save place");
+			}
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new SaveEntityException("Failed to save place");
 		}
-		return null;
 	}
 
 	@Override
@@ -142,20 +176,20 @@ public class PlaceServiceImpl implements PlaceService {
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new EntityNotFoundException("Failed to All places");
 		}
 		
 	}
 
 	@Override
-	public void deleteAllPlaces() {
+	public void deleteAllPlaces() throws Exception {
 		try
 		{
 			PlaceRepo.deleteAll();
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new Exception("Failed to delete all the places");
 		}
 		
 	}
@@ -164,7 +198,7 @@ public class PlaceServiceImpl implements PlaceService {
 	public Optional<Place> findPlaceByNameAndLocation(String pName, String pLocation)
 	{
 		try{
-			Optional<Place> plc = PlaceRepo.findPlaceByNameAndLocation(pName, pLocation);
+			Optional<Place> plc = PlaceRepo.findPlaceByNameAndAddress(pName, pLocation);
 			return plc == null ? null : plc;
 		}
 		catch(Exception e)

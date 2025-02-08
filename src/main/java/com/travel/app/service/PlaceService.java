@@ -18,7 +18,7 @@ public interface PlaceService {
 	Place updatePlace(Long id, PlaceDTO placeDTO);
 	//custom update all query
 	void deletePlaceById(Long id);
-	void deleteAllPlaces();
+	void deleteAllPlaces() throws Exception;
 	//delete place by other field
 
 }

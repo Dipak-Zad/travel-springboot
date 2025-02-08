@@ -1,5 +1,8 @@
 package com.travel.app.exception;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,31 +29,42 @@ public class GlobalExceptionHandler {
 //	}
 	
 	@ExceptionHandler(EntityNotFoundException.class)
-	public ResponseEntity<String> handleEntityNotFoundExceptions(EntityNotFoundException ex)
+	public ResponseEntity<ApiResponse<Void>> handleEntityNotFoundExceptions(EntityNotFoundException ex)
 	{
-		return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+		return ResponseEntity.status(HttpStatus.NOT_FOUND)
+				.body(new ApiResponse<>("error", ex.getMessage(), null));
 	}
 	
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex)
+	public ResponseEntity<ApiResponse<List<String>>> handleValidationExceptions(MethodArgumentNotValidException ex)
 	{
-		return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+		List<String> errorMessages = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.toList());
+		
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+				.body(new ApiResponse<>("error","Validation failed", errorMessages)); 
 	}
 	
 	@ExceptionHandler(SaveEntityException.class)
-    public ResponseEntity<String> handleSaveEntity(SaveEntityException ex) {
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ApiResponse<Void>> handleSaveEntity(SaveEntityException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        		.body(new ApiResponse<>("error", ex.getMessage(), null));
     }
 	
 	@ExceptionHandler(DuplicateEntityException.class)
-	public ResponseEntity<String> handleDuplicateEntityExceptions(DuplicateEntityException ex)
+	public ResponseEntity<ApiResponse<Void>> handleDuplicateEntityExceptions(DuplicateEntityException ex)
 	{
-		return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+		return ResponseEntity.status(HttpStatus.CONFLICT)
+				.body(new ApiResponse<>("error", ex.getMessage(), null));
 	}
 	
 	@ExceptionHandler(Exception.class)
-    public ResponseEntity<String> handleGlobalException(Exception ex) {
-        return new ResponseEntity<>("Something went wrong: " + ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ApiResponse<Void>> handleGlobalException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        		.body(new ApiResponse<>("Something went wrong:", ex.getMessage(), null));
     }
 	
 }
