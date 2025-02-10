@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 
 import com.travel.app.dto.PlaceDTO;
 import com.travel.app.exception.DuplicateEntityException;
@@ -132,6 +134,43 @@ public class PlaceServiceImpl implements PlaceService {
 		}
 	}
 	
+
+	@Override
+	public <T> List<Place> findPlaceByField(T fieldName,T fieldValue)
+	{
+		try
+		{
+			List<Place> places = PlaceRepo.searchByField(fieldName, fieldValue);
+			if(places!=null)
+			{
+				return places;
+			}
+			else
+			{
+				throw new EntityNotFoundException("Place with '"+fieldName+"' '"+fieldValue+"' not found");
+			}
+			
+		}
+		catch(Exception e)
+		{
+			throw new EntityNotFoundException("Place with '"+fieldName+"' '"+fieldValue+"' not found");
+		}
+	}
+	
+	@Override
+	public Optional<Place> findPlaceByNameAndLocation(String pName, String pLocation)
+	{
+		try{
+			Optional<Place> plc = PlaceRepo.findPlaceByNameAndAddress(pName, pLocation);
+			return plc == null ? null : plc;
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	@Override
 	public List<Place> findAllPlaces()
 	{
@@ -142,7 +181,23 @@ public class PlaceServiceImpl implements PlaceService {
 		}
 		catch(Exception e)
 		{
-			throw new EntityNotFoundException("Failed to All places");
+			throw new EntityNotFoundException("Failed to find all places");
+		}
+	}
+	
+	@Override
+	public <T> Page<Place> findAllPlaceInPages(int page, int size, T sortBy, String sortDir)
+	{
+		try
+		{
+			Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(String.valueOf(sortBy)).ascending() : Sort.by(String.valueOf(sortBy)).descending();
+			Pageable pageable = PageRequest.of(page, size, sort);
+			return PlaceRepo.findAll(pageable);
+					
+		}
+		catch(Exception e)
+		{
+			throw new EntityNotFoundException("Failed to find all places");
 		}
 	}
 	
@@ -155,17 +210,50 @@ public class PlaceServiceImpl implements PlaceService {
 			if(plc==null)
 			{
 				plc = modelMapper.map(placeDTO, Place.class);
-				return plc;
+				return PlaceRepo.save(plc);
 			}
 			else
 			{
-				throw new SaveEntityException("Failed to save place");
+				throw new SaveEntityException("Failed to update place");
 			}
 		}
 		catch(Exception e)
 		{
-			throw new SaveEntityException("Failed to save place");
+			throw new SaveEntityException("Failed to update place");
 		}
+	}
+	
+	@Override
+	public List<Place> updateAllPlaces(List<Long> idList, List<PlaceDTO> placesDTO)
+	{
+		try
+		{
+			List<Place> places = null;
+			for(Long PlaceID : idList)
+			{
+				Place place = PlaceRepo.findById(PlaceID).orElseThrow(() -> new EntityNotFoundException("No place found with ID "+PlaceID));
+				if(place == null)
+				{
+					place = modelMapper.map(placesDTO, Place.class);
+					places.add(PlaceRepo.save(place));
+					
+					if(places!=null)
+					{
+						return places;
+					}
+				}
+				else
+				{
+					throw new SaveEntityException("Failed to update place");
+				}
+				
+			}
+		}
+		catch(Exception e)
+		{
+			
+		}
+		return null;
 	}
 
 	@Override
@@ -194,19 +282,7 @@ public class PlaceServiceImpl implements PlaceService {
 		
 	}
 	
-	@Override
-	public Optional<Place> findPlaceByNameAndLocation(String pName, String pLocation)
-	{
-		try{
-			Optional<Place> plc = PlaceRepo.findPlaceByNameAndAddress(pName, pLocation);
-			return plc == null ? null : plc;
-		}
-		catch(Exception e)
-		{
-			e.printStackTrace();
-		}
-		return null;
-	}
+	
 	
 //	private Place DtoToPlace(PlaceDTO placeDTO) {
 //		Place place = modelMapper.map(placeDTO, Place.class);
