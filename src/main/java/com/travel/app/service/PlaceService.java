@@ -19,9 +19,11 @@ public interface PlaceService {
 	<T> Page<Place> findAllPlaceInPages(int page, int size, T sortBy, String sortDir);
 	Place updatePlace(Long id, PlaceDTO placeDTO);
 	List<Place> updateAllPlaces(List<Long> idList, List<PlaceDTO> placeDTO);
-	//updateAllrandom field
+	<T> List<Place> updateAllPlaceByFields(List<T> fieldList, List<T> valueList, List<PlaceDTO> placesDTO);
+	<T> List<Place> updateAllPlaceBySingleField(T fieldName, T fieldValue);
+	<T> void setFieldValue(Place place, T fiedlName, T fieldValue);
 	void deletePlaceById(Long id);
 	void deleteAllPlaces() throws Exception;
-	//delete place by other field
+	<T> void deletePlaceByField(T fieldName, T fieldvalue);
 
 }

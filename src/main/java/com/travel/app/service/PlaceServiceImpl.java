@@ -1,5 +1,6 @@
 package com.travel.app.service;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,7 @@ import com.travel.app.repository.PlaceRepository;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
-public class PlaceServiceImpl implements PlaceService {
+public class PlaceServiceImpl<T> implements PlaceService {
 
 	@Autowired
 	private ModelMapper modelMapper;
@@ -228,34 +229,93 @@ public class PlaceServiceImpl implements PlaceService {
 	{
 		try
 		{
-			List<Place> places = null;
-			for(Long PlaceID : idList)
+			if(idList.size() != placesDTO.size())
 			{
-				Place place = PlaceRepo.findById(PlaceID).orElseThrow(() -> new EntityNotFoundException("No place found with ID "+PlaceID));
-				if(place == null)
-				{
-					place = modelMapper.map(placesDTO, Place.class);
-					places.add(PlaceRepo.save(place));
-					
-					if(places!=null)
-					{
-						return places;
-					}
-				}
-				else
-				{
-					throw new SaveEntityException("Failed to update place");
-				}
-				
+				throw new IllegalArgumentException("ID list & DTO list must have the same size");
 			}
+			List<Place> places = new ArrayList<>();
+			for(int i=0; i<idList.size();i++)
+			{
+				final Long placeId = idList.get(i);
+				Place place = PlaceRepo.findById(placeId).orElseThrow(() -> new EntityNotFoundException("No place found with ID "+placeId));
+				modelMapper.map(placesDTO.get(i), place);
+				places.add(PlaceRepo.save(place));		
+			}
+			return places;
 		}
 		catch(Exception e)
 		{
-			
+			throw new SaveEntityException("Failed to update place");
 		}
-		return null;
 	}
-
+	
+	@Override
+	public <T> List<Place> updateAllPlaceByFields(List<T> placeFieldList, List<T> placeValueList, List<PlaceDTO> updatePlacesDTO)
+	{
+		if(placeFieldList.size() != placeValueList.size() || placeValueList.size() != updatePlacesDTO.size())
+		{
+			throw new IllegalArgumentException("ID list & DTO list must have the same size");
+		}
+		try
+		{
+			List<Place> updatedPlaces = new ArrayList<>();
+			
+			for(int i=0;i<placeFieldList.size();i++)
+			{
+				T fieldName = placeFieldList.get(i);
+				T fieldValue = placeValueList.get(i);
+				PlaceDTO placeDTO = updatePlacesDTO.get(i);
+				updatedPlaces = findPlaceByField(fieldName,fieldValue);
+				modelMapper.map(placeDTO, updatedPlaces.get(i));
+				updatedPlaces.add(PlaceRepo.save(updatedPlaces.get(i)));
+				
+				throw new EntityNotFoundException("No place found with "+fieldName+" : '"+fieldValue+"'");
+		
+			}
+			
+			return updatedPlaces;
+		}
+		catch(Exception e)
+		{
+			throw new SaveEntityException("Failed to update given places" +e.getMessage());
+		}
+	}
+	
+	@Override
+	public <T> List<Place> updateAllPlaceBySingleField(T fieldName, T fieldValue)
+	{
+		
+		try
+		{
+			List<Place> places = PlaceRepo.findAll();
+			for(Place plc : places)
+			{
+				setFieldValue(plc, fieldName, fieldValue);
+				PlaceRepo.save(plc);
+			}
+			return places;
+		}
+		catch(Exception e)
+		{
+			throw new SaveEntityException("Failed to update all place's "+fieldName+" with '"+fieldValue+"'");
+		}
+	}
+	
+	@Override
+	public <T> void setFieldValue(Place place, T fieldName, T fieldValue)
+	{
+		try
+		{
+			Field field = Place.class.getDeclaredField(fieldName.toString());
+			field.setAccessible(true);
+			field.set(place, fieldValue);
+		}
+		catch(NoSuchFieldException | IllegalAccessException e)
+		{
+			throw new IllegalArgumentException("Invalid field: "+fieldName);
+		}
+	}
+ 
 	@Override
 	public void deletePlaceById(Long id) {
 		try
@@ -278,6 +338,21 @@ public class PlaceServiceImpl implements PlaceService {
 		catch(Exception e)
 		{
 			throw new Exception("Failed to delete all the places");
+		}
+		
+	}
+
+	@Override
+	public <T> void deletePlaceByField(T fieldName, T fieldValue)
+	{
+		try
+		{
+			List<Place> places = findPlaceByField(fieldName, fieldValue);
+			PlaceRepo.deleteAll(places);
+		}
+		catch(Exception e)
+		{
+			throw new IllegalArgumentException("Failed to delete place by "+fieldName+" : '"+fieldValue+"'");
 		}
 		
 	}

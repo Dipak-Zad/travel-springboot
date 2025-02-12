@@ -22,5 +22,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
 	
 	@Query(value = "SELECT * FROM places WHERE ?1 LIKE %?2%", nativeQuery = true)
 	<T> List<Place> searchByField(T fieldName, T fieldValue);
+	
+	<T> void setFieldValue(Place place, T fieldName, T fieldValue);
 
 }
