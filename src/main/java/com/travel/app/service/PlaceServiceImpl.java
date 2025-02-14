@@ -35,8 +35,8 @@ public class PlaceServiceImpl<T> implements PlaceService {
 	{
 		try
 		{
-			String pName = placeDTO.getPlace_name();
-			String pAddress = placeDTO.getPlace_address();
+			String pName = placeDTO.getPlaceName();
+			String pAddress = placeDTO.getPlaceAddress();
  			Optional<Place> pCheck = PlaceRepo.findPlaceByNameAndAddress(pName, pAddress);
  			Place plc = new Place();
 			if(pCheck == null)
@@ -55,8 +55,8 @@ public class PlaceServiceImpl<T> implements PlaceService {
 			}
 			else
 			{
-				throw new DuplicateEntityException("Place with name '"+placeDTO.getPlace_name()+
-													"'at location '"+placeDTO.getPlace_address()+"' already exists.");	
+				throw new DuplicateEntityException("Place with name '"+placeDTO.getPlaceName()+
+													"'at location '"+placeDTO.getPlaceAddress()+"' already exists.");	
 			}
 			
 		}
@@ -78,8 +78,8 @@ public class PlaceServiceImpl<T> implements PlaceService {
 			String pName,pAddress;
 			for(PlaceDTO plcDTO : placesDTO)
 			{
-				pName = plcDTO.getPlace_name();
-				pAddress = plcDTO.getPlace_address();
+				pName = plcDTO.getPlaceName();
+				pAddress = plcDTO.getPlaceAddress();
 				OptPlace = PlaceRepo.findPlaceByNameAndAddress(pName, pAddress);
 				if(OptPlace==null)
 				{
@@ -88,8 +88,8 @@ public class PlaceServiceImpl<T> implements PlaceService {
 				}
 				else
 				{
-					throw new DuplicateEntityException("Place with name '"+plcDTO.getPlace_name()+
-							"'at location '"+plcDTO.getPlace_address()+"' already exists.");
+					throw new DuplicateEntityException("Place with name '"+plcDTO.getPlaceName()+
+							"'at location '"+plcDTO.getPlaceAddress()+"' already exists.");
 				}
 				
 			}

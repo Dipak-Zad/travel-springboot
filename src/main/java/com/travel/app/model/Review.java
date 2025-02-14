@@ -17,17 +17,37 @@ public class Review {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	private Long user_id;
-	private Long place_id; //true = avail/false = unavail
-	private Long rating;
+	
+	@ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+	@ManyToOne
+	@JoinColumn(name = "place_id", nullable = false)
+	private Place place;
+
+	@Column(nullable = false)
+	private Integer rating;
+	
+	@Column(length = 1500)
 	private String comment;
+	
 	@Column(nullable=false)
 	private String status="ACTIVE";
+	
 	@CreationTimestamp
-	private LocalDateTime created_date;
-	private String created_by;
+	@Column(name="created_date", nullable=false)
+	private LocalDateTime createdDate;
+
+	@Column(name="created_by", nullable = false)
+	private String createdBy;
+	
 	@UpdateTimestamp
-	private LocalDateTime modified_date;
-	private String modified_by;
+	@Column(name="modified_date", nullable=false)
+	private LocalDateTime modifiedDate;
+
+	@Column(name="modified_by", nullable = false)
+	private String modifiedBy;
+	
 	
 }

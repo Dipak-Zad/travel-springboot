@@ -11,37 +11,34 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name="place_type")
+@Table(name="role")
 @Data
-public class PlaceType {
+public class Role {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
-	
-	@Column(nullable = false, unique = true)
-	private String type;
-	
-	private String description;
-	
+
+    @Column(nullable = false, unique = true)
+	private String role; //SuperAdmin/Admin/User etc
+    
 	@Column(nullable=false)
 	private String status="ACTIVE";
 	
 	@CreationTimestamp
 	@Column(name="created_date", nullable=false)
 	private LocalDateTime createdDate;
-	
-	@Column(name="created_by", nullable = false)
+
+    @Column(name="created_by", nullable = false)
 	private String createdBy;
-	
+    
 	@UpdateTimestamp
 	@Column(name="modified_date", nullable=false)
 	private LocalDateTime modifiedDate;
-	
-	@Column(name="modified_by", nullable = false)
+
+    @Column(name="modified_by", nullable = false)
 	private String modifiedBy;
 	
-	@OneToMany(mappedBy = "placeType", cascade = CascadeType.ALL)
-	private List<Place> places = new ArrayList<>();
-	
+	@OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
+	private List<User> users = new ArrayList<>();	
 }
