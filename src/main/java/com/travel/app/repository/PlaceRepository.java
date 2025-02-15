@@ -15,14 +15,14 @@ import com.travel.app.model.Place;
 @Repository
 public interface PlaceRepository extends JpaRepository<Place, Long> {
 
-	Page<Place> findByNameContainingIgnoreCase(String name, Pageable pageable);
+	//Page<Place> findByNameContainingIgnoreCase(String name, Pageable pageable);
 	
-	@Query("SELECT p FROM place p WHERE p.place_name = :place_name AND p.address = :address")
-	Optional<Place> findPlaceByNameAndAddress(@Param("place_name") String place_name,@Param("address") String place_address);
+	@Query("SELECT p FROM Place p WHERE p.placeName = :placeName AND p.placeAddress = :placeAddress")
+	Optional<Place> findPlaceByNameAndAddress(@Param("placeName") String placeName, @Param("placeAddress") String placeAddress);
 	
-	@Query(value = "SELECT * FROM places WHERE ?1 LIKE %?2%", nativeQuery = true)
+	@Query(value = "SELECT * FROM Place WHERE ?1 LIKE %?2%", nativeQuery = true)
 	<T> List<Place> searchByField(T fieldName, T fieldValue);
 	
-	<T> void setFieldValue(Place place, T fieldName, T fieldValue);
+	//<T> void setFieldValue(Place place, T fieldName, T fieldValue);
 
 }

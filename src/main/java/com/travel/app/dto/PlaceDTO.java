@@ -22,7 +22,7 @@ public class PlaceDTO {
 	@NotBlank(message = "place's type is required")
 	private String placeTypeId;
 	
-	private List<String> timing;
+	private String timing;
 	
 	@NotNull(message = "place's address is required")
 	@Size(max = 500)

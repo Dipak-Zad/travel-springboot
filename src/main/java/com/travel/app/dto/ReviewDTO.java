@@ -24,7 +24,7 @@ public class ReviewDTO {
 	private Integer rating;
 	
 	@Size(max = 1500)
-	private String comment;
+	private String review;
 	
 	@NotNull(message = "review status is required")
 	private String status;

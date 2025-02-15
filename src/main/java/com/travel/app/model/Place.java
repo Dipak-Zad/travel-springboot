@@ -11,7 +11,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name="place")
+@Table(name="places")
 @Data
 public class Place {
 
@@ -29,7 +29,7 @@ public class Place {
 	@JoinColumn(name = "place_type_id", nullable = false)
 	private PlaceType placeType;
 	
-	private List<String> timing; //opening days & hrs
+	private String timing; //opening days & hrs
 	
 	@Column(name ="place_address", nullable = false)
 	private String placeAddress; 

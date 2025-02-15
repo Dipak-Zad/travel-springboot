@@ -1,7 +1,6 @@
 package com.travel.app.model;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -10,7 +9,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name="review")
+@Table(name="reviews")
 @Data
 public class Review {
 
@@ -30,7 +29,7 @@ public class Review {
 	private Integer rating;
 	
 	@Column(length = 1500)
-	private String comment;
+	private String review;
 	
 	@Column(nullable=false)
 	private String status="ACTIVE";
