@@ -28,7 +28,7 @@ public class PlaceController {
 	@Autowired
 	private PlaceService PlaceServ;
 	
-	@PostMapping
+	@PostMapping("/savePlace")
 	public ResponseEntity<ApiResponse<Place>> savePlace(@Valid @RequestBody PlaceDTO placeDTO)
 	{
 		Place place = PlaceServ.saveSinglePlace(placeDTO);
@@ -36,28 +36,28 @@ public class PlaceController {
 				.body(new ApiResponse<>("Success", "New place saved successfully", place));
 	}
 	
-	@GetMapping
+	@GetMapping("/getAllPlaces")
 	public ResponseEntity<ApiResponse<List<Place>>> getAllPlace()
 	{
 		List<Place> places = PlaceServ.findAllPlaces();
 		return ResponseEntity.ok(new ApiResponse<>("Success", "All places fetched successfully", places));
 	}
 	
-	@GetMapping("/{p_id}")
+	@GetMapping("/findPlace/{p_id}")
 	public ResponseEntity<ApiResponse<Optional<Place>>> getPlaceById(@PathVariable Long id)
 	{
 		Optional<Place> place = PlaceServ.findPlaceById(id);
 		return ResponseEntity.ok(new ApiResponse<>("Success", "Place found", place));
 	}
 	
-	@PutMapping("/{p_id}")
+	@PutMapping("/updatePlace/{p_id}")
 	public ResponseEntity<ApiResponse<Place>> updatePlace(@PathVariable("p_id") Long p_id, @Valid @RequestBody PlaceDTO placeDTO)
 	{
 		Place place = PlaceServ.updatePlace(p_id, placeDTO);
 		return ResponseEntity.ok(new ApiResponse<>("Success","Place updated succesfully", place));
 	}
 	
-	@DeleteMapping("/{p_id}")
+	@DeleteMapping("deletePlace/{p_id}")
 	public ResponseEntity<ApiResponse<Void>> deletePlace(@PathVariable Long p_id)
 	{
 		PlaceServ.deletePlaceById(p_id);

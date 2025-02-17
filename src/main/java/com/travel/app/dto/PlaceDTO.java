@@ -1,7 +1,5 @@
 package com.travel.app.dto;
 
-import java.util.List;
-
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -16,7 +14,7 @@ public class PlaceDTO {
 	@NotBlank(message = "place's name is required")
 	private String placeName;
 	
-	@NotBlank(message = "place's availability status is required")
+	@NotNull(message = "place's availability status is required")
 	private Boolean availability;
 	
 	@NotBlank(message = "place's type is required")

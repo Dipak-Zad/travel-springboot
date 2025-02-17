@@ -81,6 +81,7 @@ public class PlaceServiceImpl<T> implements PlaceService {
 				pName = plcDTO.getPlaceName();
 				pAddress = plcDTO.getPlaceAddress();
 				OptPlace = PlaceRepo.findPlaceByNameAndAddress(pName, pAddress);
+				
 				if(OptPlace==null)
 				{
 					Place tempPlc = modelMapper.map(plcDTO, Place.class);
@@ -159,7 +160,7 @@ public class PlaceServiceImpl<T> implements PlaceService {
 	}
 	
 	@Override
-	public Optional<Place> findPlaceByNameAndLocation(String pName, String pLocation)
+	public Optional<Place> findPlaceByNameAndAddress(String pName, String pLocation)
 	{
 		try{
 			Optional<Place> plc = PlaceRepo.findPlaceByNameAndAddress(pName, pLocation);
@@ -167,9 +168,8 @@ public class PlaceServiceImpl<T> implements PlaceService {
 		}
 		catch(Exception e)
 		{
-			e.printStackTrace();
+			throw new EntityNotFoundException("Place with name '"+pLocation+"' not found");
 		}
-		return null;
 	}
 	
 	@Override
