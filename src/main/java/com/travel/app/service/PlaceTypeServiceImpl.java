@@ -1,6 +1,6 @@
 package com.travel.app.service;
 
-import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,28 +35,29 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 	{
 		try
 		{
-			T pType = (T) placeTypeDTO.getType();
-			T pField = (T) "type";
- 			List<PlaceType> pTypeCheck = PlaceTypeRepo.searchByField(pField, pType);
+			String pType = placeTypeDTO.getType();
+			String pDesc = placeTypeDTO.getDescription();
+			Optional<PlaceType> pTypeCheck = PlaceTypeRepo.findUserByTypeAndDesc(pType, pDesc);
  			PlaceType plcType = new PlaceType();
-			if(pTypeCheck == null)
+ 			
+			if(pTypeCheck.isPresent())
 			{
-				plcType = modelMapper.map(placeTypeDTO, PlaceType.class);
-				plcType = PlaceTypeRepo.save(plcType);
-				if(plcType != null)
-				{
-					//return plc == null ? null : plc;
-					return plcType;
-				}
-				else
-				{
-					throw new SaveEntityException("Failed to save placeType");	
-				}
+				throw new DuplicateEntityException("PlaceType with '"+placeTypeDTO.getType()+"' already exists.");
 			}
-			else
+				
+			plcType = modelMapper.map(placeTypeDTO, PlaceType.class);
+			plcType.setCreatedDate(LocalDateTime.now());
+			plcType.setCreatedBy("current session user");
+			plcType.setModifiedDate(LocalDateTime.now());
+			plcType.setModifiedBy("current session user");
+			plcType = PlaceTypeRepo.save(plcType);
+				
+			if(plcType == null)
 			{
-				throw new DuplicateEntityException("PlaceType with '"+placeTypeDTO.getType()+"' already exists.");	
+				throw new SaveEntityException("Failed to save placeType");
+					
 			}
+			return plcType;
 			
 		}
 		catch(Exception e)
@@ -73,43 +74,43 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 		try
 		{
 			List<PlaceType> placeTypes = new ArrayList<PlaceType>();
-			List<PlaceType> OptPlaceType = null;
-			T  pType,pField;
+			Optional<PlaceType> OptPlaceType = null;
+			String  pType,pDesc;
 			for(PlaceTypeDTO plcTypeDTO : placeTypeDTOList)
 			{
-				pType = (T) plcTypeDTO.getType();
-				pField = (T) "type";
-				OptPlaceType = PlaceTypeRepo.searchByField("type", pType);
-				if(OptPlaceType==null)
-				{
-					PlaceType tempPlcType = modelMapper.map(plcTypeDTO, PlaceType.class);
-					placeTypes.add(tempPlcType);
-				}
-				else
+				pType = plcTypeDTO.getType();
+				pDesc = plcTypeDTO.getDescription();
+				OptPlaceType = PlaceTypeRepo.findUserByTypeAndDesc(pType, pDesc);
+				
+				if(OptPlaceType.isPresent())
 				{
 					throw new DuplicateEntityException("PlaceType with '"+pType+"' already exists.");
 				}
 				
+				PlaceType tempPlcType = modelMapper.map(plcTypeDTO, PlaceType.class);
+				tempPlcType.setCreatedDate(LocalDateTime.now());
+				tempPlcType.setCreatedBy("current session user");
+				tempPlcType.setModifiedDate(LocalDateTime.now());
+				tempPlcType.setModifiedBy("current session user");
+				placeTypes.add(tempPlcType);
+				
 			}
 
 			placeTypes = PlaceTypeRepo.saveAll(placeTypes);
+			
 			if(placeTypes != null)
-			{
-				return placeTypes;
-			}
-			else
 			{
 				throw new SaveEntityException("Failed to save given placeTypes");
 			}
-			//return placeTypes == null ? null : placeTypes; 
+
+			return placeTypes; 
 		}
 		catch(Exception e)
 		{
 			throw new SaveEntityException("Failed to save given placeTypes");
-			//e.printStackTrace();
+			
 		}
 		
-		//return null;
 	}
 	
 	@Override
@@ -117,44 +118,46 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 	{
 		try
 		{
+			System.out.println("asd"+id);
 			Optional<PlaceType> plc = PlaceTypeRepo.findById(id);
-			if(plc!=null)
+			System.out.println("asd"+plc);
+			if(plc.isPresent())
 			{
 				return plc;
 			}
 			else
 			{
-				throw new EntityNotFoundException("PlaceType with '"+id+"' not found");
+				throw new EntityNotFoundException("PlaceType with ID '"+id+"' not found");
 			}
 		}
 		catch(Exception e)
 		{
-			throw new EntityNotFoundException("PlaceType with '"+id+"' not found");
+			throw new EntityNotFoundException("PlaceType with ID '"+id+"' not found");
 		}
 	}
 	
 
-	@Override
-	public <T> List<PlaceType> findPlaceTypeByField(T fieldName,T fieldValue)
-	{
-		try
-		{
-			List<PlaceType> placeTypes = PlaceTypeRepo.searchByField(fieldName, fieldValue);
-			if(placeTypes!=null)
-			{
-				return placeTypes;
-			}
-			else
-			{
-				throw new EntityNotFoundException("PlaceType with '"+fieldName+"' '"+fieldValue+"' not found");
-			}
-			
-		}
-		catch(Exception e)
-		{
-			throw new EntityNotFoundException("PlaceType with '"+fieldName+"' '"+fieldValue+"' not found");
-		}
-	}
+//	@Override
+//	public <T> List<PlaceType> findPlaceTypeByField(String fieldName,T fieldValue)
+//	{
+//		try
+//		{
+//			List<PlaceType> placeTypes = PlaceTypeRepo.searchByField(fieldName, fieldValue);
+//			if(placeTypes!=null)
+//			{
+//				return placeTypes;
+//			}
+//			else
+//			{
+//				throw new EntityNotFoundException("PlaceType with '"+fieldName+"' '"+fieldValue+"' not found");
+//			}
+//			
+//		}
+//		catch(Exception e)
+//		{
+//			throw new EntityNotFoundException("PlaceType with '"+fieldName+"' '"+fieldValue+"' not found");
+//		}
+//	}
 	
 //	@Override
 //	public Optional<PlaceType> findPlaceTypeByNameAndLocation(String pName, String pLocation)
@@ -204,16 +207,28 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 	{
 		try
 		{
-			PlaceType plc = PlaceTypeRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("No placeType found with ID "+id));
-			if(plc==null)
+			PlaceType placeType = PlaceTypeRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("No placeType found with ID "+id));
+			
+			if(placeTypeDTO.getType()!=null && !placeTypeDTO.getType().trim().isEmpty())
 			{
-				plc = modelMapper.map(placeTypeDTO, PlaceType.class);
-				return PlaceTypeRepo.save(plc);
+				placeType.setType(placeTypeDTO.getType());
 			}
-			else
+			
+			if(placeTypeDTO.getDescription()!=null && !placeTypeDTO.getDescription().trim().isEmpty())
 			{
-				throw new SaveEntityException("Failed to update placeType");
+				placeType.setDescription(placeTypeDTO.getDescription());
 			}
+			
+			if(placeTypeDTO.getStatus()!=null)
+			{
+				placeType.setStatus(placeTypeDTO.getStatus());
+			}
+			
+			placeType.setModifiedDate(LocalDateTime.now());
+			placeType.setModifiedBy("new current session user");
+			
+			return PlaceTypeRepo.save(placeType);
+			
 		}
 		catch(Exception e)
 		{
@@ -230,14 +245,36 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 			{
 				throw new IllegalArgumentException("ID list & DTO list must have the same size");
 			}
+			
 			List<PlaceType> placeTypes = new ArrayList<>();
+			
 			for(int i=0; i<idList.size();i++)
 			{
 				final Long placeTypeId = idList.get(i);
 				PlaceType placeType = PlaceTypeRepo.findById(placeTypeId).orElseThrow(() -> new EntityNotFoundException("No placeType found with ID "+placeTypeId));
-				modelMapper.map(placeTypesDTO.get(i), placeType);
+				PlaceTypeDTO placeTypeDTO = placeTypesDTO.get(i);
+				
+				if(placeTypeDTO.getType()!=null && !placeTypeDTO.getType().trim().isEmpty())
+				{
+					placeType.setType(placeTypeDTO.getType());
+				}
+				
+				if(placeTypeDTO.getDescription()!=null && !placeTypeDTO.getDescription().trim().isEmpty())
+				{
+					placeType.setDescription(placeTypeDTO.getDescription());
+				}
+				
+				if(placeTypeDTO.getStatus()!=null)
+				{
+					placeType.setStatus(placeTypeDTO.getStatus());
+				}
+				
+				placeType.setModifiedDate(LocalDateTime.now());
+				placeType.setModifiedBy("new current session user");
+				
 				placeTypes.add(PlaceTypeRepo.save(placeType));		
 			}
+			
 			return placeTypes;
 		}
 		catch(Exception e)
@@ -246,72 +283,72 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 		}
 	}
 	
-	@Override
-	public <T> List<PlaceType> updateAllPlaceTypeByFields(List<T> placeTypeFieldList, List<T> placeTypeValueList, List<PlaceTypeDTO> updatePlaceTypesDTO)
-	{
-		if(placeTypeFieldList.size() != placeTypeValueList.size() || placeTypeValueList.size() != updatePlaceTypesDTO.size())
-		{
-			throw new IllegalArgumentException("ID list & DTO list must have the same size");
-		}
-		try
-		{
-			List<PlaceType> updatedPlaceTypes = new ArrayList<>();
-			
-			for(int i=0;i<placeTypeFieldList.size();i++)
-			{
-				T fieldName = placeTypeFieldList.get(i);
-				T fieldValue = placeTypeValueList.get(i);
-				PlaceTypeDTO placeTypeDTO = updatePlaceTypesDTO.get(i);
-				updatedPlaceTypes = findPlaceTypeByField(fieldName,fieldValue);
-				modelMapper.map(placeTypeDTO, updatedPlaceTypes.get(i));
-				updatedPlaceTypes.add(PlaceTypeRepo.save(updatedPlaceTypes.get(i)));
-				
-				throw new EntityNotFoundException("No placeType found with "+fieldName+" : '"+fieldValue+"'");
-		
-			}
-			
-			return updatedPlaceTypes;
-		}
-		catch(Exception e)
-		{
-			throw new SaveEntityException("Failed to update given placeTypes" +e.getMessage());
-		}
-	}
+//	@Override
+//	public <T> List<PlaceType> updateAllPlaceTypeByFields(List<T> placeTypeFieldList, List<T> placeTypeValueList, List<PlaceTypeDTO> updatePlaceTypesDTO)
+//	{
+//		if(placeTypeFieldList.size() != placeTypeValueList.size() || placeTypeValueList.size() != updatePlaceTypesDTO.size())
+//		{
+//			throw new IllegalArgumentException("ID list & DTO list must have the same size");
+//		}
+//		try
+//		{
+//			List<PlaceType> updatedPlaceTypes = new ArrayList<>();
+//			
+//			for(int i=0;i<placeTypeFieldList.size();i++)
+//			{
+//				T fieldName = placeTypeFieldList.get(i);
+//				T fieldValue = placeTypeValueList.get(i);
+//				PlaceTypeDTO placeTypeDTO = updatePlaceTypesDTO.get(i);
+//				updatedPlaceTypes = findPlaceTypeByField(fieldName,fieldValue);
+//				modelMapper.map(placeTypeDTO, updatedPlaceTypes.get(i));
+//				updatedPlaceTypes.add(PlaceTypeRepo.save(updatedPlaceTypes.get(i)));
+//				
+//				throw new EntityNotFoundException("No placeType found with "+fieldName+" : '"+fieldValue+"'");
+//		
+//			}
+//			
+//			return updatedPlaceTypes;
+//		}
+//		catch(Exception e)
+//		{
+//			throw new SaveEntityException("Failed to update given placeTypes" +e.getMessage());
+//		}
+//	}
+
+//	@Override
+//	public <T> List<PlaceType> updateAllPlaceTypeBySingleField(T fieldName, T fieldValue)
+//	{
+//		
+//		try
+//		{
+//			List<PlaceType> placeTypes = PlaceTypeRepo.findAll();
+//			for(PlaceType plc : placeTypes)
+//			{
+//				setFieldValue(plc, fieldName, fieldValue);
+//				PlaceTypeRepo.save(plc);
+//			}
+//			return placeTypes;
+//		}
+//		catch(Exception e)
+//		{
+//			throw new SaveEntityException("Failed to update all placeType's "+fieldName+" with '"+fieldValue+"'");
+//		}
+//	}
 	
-	@Override
-	public <T> List<PlaceType> updateAllPlaceTypeBySingleField(T fieldName, T fieldValue)
-	{
-		
-		try
-		{
-			List<PlaceType> placeTypes = PlaceTypeRepo.findAll();
-			for(PlaceType plc : placeTypes)
-			{
-				setFieldValue(plc, fieldName, fieldValue);
-				PlaceTypeRepo.save(plc);
-			}
-			return placeTypes;
-		}
-		catch(Exception e)
-		{
-			throw new SaveEntityException("Failed to update all placeType's "+fieldName+" with '"+fieldValue+"'");
-		}
-	}
-	
-	@Override
-	public <T> void setFieldValue(PlaceType placeType, T fieldName, T fieldValue)
-	{
-		try
-		{
-			Field field = PlaceType.class.getDeclaredField(fieldName.toString());
-			field.setAccessible(true);
-			field.set(placeType, fieldValue);
-		}
-		catch(NoSuchFieldException | IllegalAccessException e)
-		{
-			throw new IllegalArgumentException("Invalid field: "+fieldName);
-		}
-	}
+//	@Override
+//	public <T> void setFieldValue(PlaceType placeType, T fieldName, T fieldValue)
+//	{
+//		try
+//		{
+//			Field field = PlaceType.class.getDeclaredField(fieldName.toString());
+//			field.setAccessible(true);
+//			field.set(placeType, fieldValue);
+//		}
+//		catch(NoSuchFieldException | IllegalAccessException e)
+//		{
+//			throw new IllegalArgumentException("Invalid field: "+fieldName);
+//		}
+//	}
  
 	@Override
 	public void deletePlaceTypeById(Long id) {
@@ -339,20 +376,20 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 		
 	}
 
-	@Override
-	public <T> void deletePlaceTypeByField(T fieldName, T fieldValue)
-	{
-		try
-		{
-			List<PlaceType> placeTypes = findPlaceTypeByField(fieldName, fieldValue);
-			PlaceTypeRepo.deleteAll(placeTypes);
-		}
-		catch(Exception e)
-		{
-			throw new IllegalArgumentException("Failed to delete placeType by "+fieldName+" : '"+fieldValue+"'");
-		}
-		
-	}
+//	@Override
+//	public <T> void deletePlaceTypeByField(String fieldName, T fieldValue)
+//	{
+//		try
+//		{
+//			List<PlaceType> placeTypes = findPlaceTypeByField(fieldName, fieldValue);
+//			PlaceTypeRepo.deleteAll(placeTypes);
+//		}
+//		catch(Exception e)
+//		{
+//			throw new IllegalArgumentException("Failed to delete placeType by "+fieldName+" : '"+fieldValue+"'");
+//		}
+//		
+//	}
 	
 	
 	

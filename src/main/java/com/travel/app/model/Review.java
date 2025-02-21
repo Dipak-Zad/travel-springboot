@@ -5,11 +5,13 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.travel.app.enums.Status;
+
 import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
-@Table(name="reviews")
+@Table(name="review")
 @Data
 public class Review {
 
@@ -31,14 +33,15 @@ public class Review {
 	@Column(length = 1500)
 	private String review;
 	
+	@Enumerated(EnumType.STRING)
 	@Column(nullable=false)
-	private String status="ACTIVE";
+	private Status status= Status.ACTIVE;
 	
 	@CreationTimestamp
-	@Column(name="created_date", nullable=false)
+	@Column(name="created_date")
 	private LocalDateTime createdDate;
 
-	@Column(name="created_by", nullable = false)
+	@Column(name="created_by")
 	private String createdBy;
 	
 	@UpdateTimestamp

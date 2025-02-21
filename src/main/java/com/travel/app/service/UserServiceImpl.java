@@ -1,6 +1,7 @@
 package com.travel.app.service;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -40,31 +41,29 @@ public class UserServiceImpl implements UserService {
 			String userMail = userDTO.getEmail();
 			Optional<User> uCheck = userRepo.findUserByNameAndMail(userName, userMail);
 			User user = new User();
-			if(uCheck == null)
-			{
-				user = modelMapper.map(userDTO, User.class);
-				user = userRepo.save(user);
-				if(user != null)
-				{
-					return user;
-				}
-				else
-				{
-					throw new SaveEntityException("Failed to save user");
-				}
-			}
-			else
+			if(uCheck.isPresent())
 			{
 				throw new DuplicateEntityException("User with name '"+userDTO.getUserName()+"' and mail '"+userDTO.getEmail()+"' already exists.");
 			}
+			
+			user = modelMapper.map(userDTO, User.class);
+			user = userRepo.save(user);
+			
+			if(user == null)
+			{
+				throw new SaveEntityException("Failed to save user");
+			}
+			return user;
+			
 		}
 		catch(Exception e)
 		{
-			
+			throw new SaveEntityException("Failed to save place");
 		}
-		return null;
+		
 	}
 
+	
 	@Override
 	public List<User> saveAllUSer(List<UserDTO> usersDTO) {
 		try
@@ -77,50 +76,42 @@ public class UserServiceImpl implements UserService {
 				uName = usrDTO.getUserName();
 				uMail = usrDTO.getEmail();
 				OptUser = userRepo.findUserByNameAndMail(uName, uMail);
-				if(OptUser==null)
-				{
-					User tempPlc = modelMapper.map(usrDTO, User.class);
-					users.add(tempPlc);
-				}
-				else
+				if(OptUser.isPresent())
 				{
 					throw new DuplicateEntityException("User with name '"+usrDTO.getUserName()+
 							"'at mail '"+usrDTO.getEmail()+"' already exists.");
 				}
 				
+				User tempPlc = modelMapper.map(usrDTO, User.class);
+				users.add(tempPlc);
 			}
 
 			users = userRepo.saveAll(users);
-			if(users != null)
+			if(users == null)
 			{
-				return users;
+				throw new SaveEntityException("Failed to save given users");	
 			}
-			else
-			{
-				throw new SaveEntityException("Failed to save given users");
-			}
-			//return users == null ? null : users; 
+			
+			return users; 
 		}
 		catch(Exception e)
 		{
 			throw new SaveEntityException("Failed to save given users");
-			//e.printStackTrace();
 		}
 	}
 
+	
 	@Override
 	public Optional<User> findUserById(Long Id) {
 		try
 		{
-			Optional<User> usr = userRepo.findById(Id);
-			if(usr!=null)
+			Optional<User> user = userRepo.findById(Id);
+			if(user==null)
 			{
-				return usr;
+				throw new EntityNotFoundException("User with '"+Id+"' not found");	
 			}
-			else
-			{
-				throw new EntityNotFoundException("User with '"+Id+"' not found");
-			}
+			
+			return user;
 		}
 		catch(Exception e)
 		{
@@ -128,51 +119,52 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
-	@Override
-	public <T> List<User> findUserByField(T fieldName, T fieldValue) {
-		try
-		{
-			List<User> users = userRepo.searchByField(fieldName, fieldValue);
-			if(users!=null)
-			{
-				return users;
-			}
-			else
-			{
-				throw new EntityNotFoundException("User with '"+fieldName+"' '"+fieldValue+"' not found");
-			}
-			
-		}
-		catch(Exception e)
-		{
-			throw new EntityNotFoundException("User with '"+fieldName+"' '"+fieldValue+"' not found");
-		}
-	}
+	
+//	@Override
+//	public <T> List<User> findUserByField(T fieldName, T fieldValue) {
+//		try
+//		{
+//			List<User> users = userRepo.searchByField(fieldName, fieldValue);
+//			if(users==null)
+//			{
+//				throw new EntityNotFoundException("User with '"+fieldName+"' '"+fieldValue+"' not found");
+//			}
+//				
+//			return users;
+//		}
+//		catch(Exception e)
+//		{
+//			throw new EntityNotFoundException("User with '"+fieldName+"' '"+fieldValue+"' not found");
+//		}
+//	}
 
+	
 	@Override
 	public Optional<User> findUserByNameAndMail(String userName, String userRole) {
 		try{
-			Optional<User> usr = userRepo.findUserByNameAndMail(userName, userRole);
-			return usr == null ? null : usr;
+			Optional<User> user = userRepo.findUserByNameAndMail(userName, userRole);
+			return user == null ? null : user;
 		}
 		catch(Exception e)
 		{
 			throw new EntityNotFoundException("User with username '"+userName+"' not found");
 		}
 	}
+	
 
 	@Override
 	public List<User> findAllUsers() {
 		try
 		{
-			List<User> usrs = userRepo.findAll();
-			return usrs == null ? null : usrs;
+			List<User> users = userRepo.findAll();
+			return users == null ? null : users;
 		}
 		catch(Exception e)
 		{
 			throw new EntityNotFoundException("Failed to find all users");
 		}
 	}
+	
 
 	@Override
 	public <T> Page<User> findAllUserInPages(int pageNumber, int pageSize, T sortByField, String sortDirection) {
@@ -188,21 +180,53 @@ public class UserServiceImpl implements UserService {
 			throw new EntityNotFoundException("Failed to find all users");
 		}
 	}
+	
 
 	@Override
 	public User updateUser(Long id, UserDTO userDTO) {
 		try
 		{
-			User usr = userRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("No user found with ID "+id));
-			if(usr==null)
+			User user = userRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("No user found with ID "+id));
+			
+			if(userDTO.getUserName()!=null && !userDTO.getUserName().trim().isEmpty())
 			{
-				usr = modelMapper.map(userDTO, User.class);
-				return userRepo.save(usr);
+				user.setUserName(userDTO.getUserName());
 			}
-			else
+			
+			if(userDTO.getPassword()!=null && !userDTO.getPassword().trim().isEmpty())
 			{
-				throw new SaveEntityException("Failed to update user");
+				user.setPassword(userDTO.getPassword());
 			}
+			
+			if(userDTO.getDob()!=null)
+			{
+				user.setDob(userDTO.getDob());
+			}
+			
+			if(userDTO.getEmail()!=null && !userDTO.getEmail().trim().isEmpty())
+			{
+				user.setEmail(userDTO.getEmail());
+			}
+			
+			if(userDTO.getMobileNo()!=null && (userDTO.getMobileNo() > 999999999))
+			{
+				user.setMobileNo(userDTO.getMobileNo());
+			}
+			
+			if(userDTO.getHomeAddress()!=null && !userDTO.getHomeAddress().trim().isEmpty())
+			{
+				user.setHomeAddress(userDTO.getHomeAddress());
+			}
+			
+			if(userDTO.getStatus()!=null)
+			{
+				user.setStatus(userDTO.getStatus());
+			}
+			
+			user.setModifiedDate(LocalDateTime.now());
+			user.setModifiedBy("new current session user");
+			
+			return userRepo.save(user);
 		}
 		catch(Exception e)
 		{
@@ -223,7 +247,45 @@ public class UserServiceImpl implements UserService {
 			{
 				final Long userId = idList.get(i);
 				User user = userRepo.findById(userId).orElseThrow(() -> new EntityNotFoundException("No user found with ID "+userId));
-				modelMapper.map(userDTOList.get(i), user);
+				UserDTO userDTO = userDTOList.get(i);
+				
+				if(userDTO.getUserName()!=null && !userDTO.getUserName().trim().isEmpty())
+				{
+					user.setUserName(userDTO.getUserName());
+				}
+				
+				if(userDTO.getPassword()!=null && !userDTO.getPassword().trim().isEmpty())
+				{
+					user.setPassword(userDTO.getPassword());
+				}
+				
+				if(userDTO.getDob()!=null)
+				{
+					user.setDob(userDTO.getDob());
+				}
+				
+				if(userDTO.getEmail()!=null && !userDTO.getEmail().trim().isEmpty())
+				{
+					user.setEmail(userDTO.getEmail());
+				}
+				
+				if(userDTO.getMobileNo()!=null && (userDTO.getMobileNo() > 999999999))
+				{
+					user.setMobileNo(userDTO.getMobileNo());
+				}
+				
+				if(userDTO.getHomeAddress()!=null && !userDTO.getHomeAddress().trim().isEmpty())
+				{
+					user.setHomeAddress(userDTO.getHomeAddress());
+				}
+				
+				if(userDTO.getStatus()!=null)
+				{
+					user.setStatus(userDTO.getStatus());
+				}
+				
+				user.setModifiedDate(LocalDateTime.now());
+				user.setModifiedBy("new current session user");
 				users.add(userRepo.save(user));		
 			}
 			return users;
@@ -234,70 +296,74 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
-	@Override
-	public <T> List<User> updateAllUserByFields(List<T> userFieldList, List<T> userValueList, List<UserDTO> userDTOList) {
-		if(userFieldList.size() != userValueList.size() || userValueList.size() != userDTOList.size())
-		{
-			throw new IllegalArgumentException("ID list & DTO list must have the same size");
-		}
-		try
-		{
-			List<User> updatedUsers = new ArrayList<>();
-			
-			for(int i=0;i<userFieldList.size();i++)
-			{
-				T fieldName = userFieldList.get(i);
-				T fieldValue = userValueList.get(i);
-				UserDTO userDTO = userDTOList.get(i);
-				updatedUsers = findUserByField(fieldName,fieldValue);
-				modelMapper.map(userDTO, updatedUsers.get(i));
-				updatedUsers.add(userRepo.save(updatedUsers.get(i)));
-				
-				throw new EntityNotFoundException("No user found with "+fieldName+" : '"+fieldValue+"'");
-		
-			}
-			
-			return updatedUsers;
-		}
-		catch(Exception e)
-		{
-			throw new SaveEntityException("Failed to update given users" +e.getMessage());
-		}
-	}
+	
+//	@Override
+//	public <T> List<User> updateAllUserByFields(List<T> userFieldList, List<T> userValueList, List<UserDTO> userDTOList) {
+//		if(userFieldList.size() != userValueList.size() || userValueList.size() != userDTOList.size())
+//		{
+//			throw new IllegalArgumentException("ID list & DTO list must have the same size");
+//		}
+//		try
+//		{
+//			List<User> updatedUsers = new ArrayList<>();
+//			
+//			for(int i=0;i<userFieldList.size();i++)
+//			{
+//				T fieldName = userFieldList.get(i);
+//				T fieldValue = userValueList.get(i);
+//				UserDTO userDTO = userDTOList.get(i);
+//				updatedUsers = findUserByField(fieldName,fieldValue);
+//				modelMapper.map(userDTO, updatedUsers.get(i));
+//				updatedUsers.add(userRepo.save(updatedUsers.get(i)));
+//				
+//				throw new EntityNotFoundException("No user found with "+fieldName+" : '"+fieldValue+"'");
+//		
+//			}
+//			
+//			return updatedUsers;
+//		}
+//		catch(Exception e)
+//		{
+//			throw new SaveEntityException("Failed to update given users" +e.getMessage());
+//		}
+//	}
+	
 
-	@Override
-	public <T> List<User> updateAllUserBySingleField(T fieldName, T fieldValue) {
-		try
-		{
-			List<User> users = userRepo.findAll();
-			for(User usr : users)
-			{
-				setFieldValue(usr, fieldName, fieldValue);
-				userRepo.save(usr);
-			}
-			return users;
-		}
-		catch(Exception e)
-		{
-			throw new SaveEntityException("Failed to update all user's "+fieldName+" with '"+fieldValue+"'");
-		}
-	}
+//	@Override
+//	public <T> List<User> updateAllUserBySingleField(T fieldName, T fieldValue) {
+//		try
+//		{
+//			List<User> users = userRepo.findAll();
+//			for(User user : users)
+//			{
+//				setFieldValue(user, fieldName, fieldValue);
+//				userRepo.save(user);
+//			}
+//			return users;
+//		}
+//		catch(Exception e)
+//		{
+//			throw new SaveEntityException("Failed to update all user's "+fieldName+" with '"+fieldValue+"'");
+//		}
+//	}
 
-	@Override
-	public <T> void setFieldValue(User user, T fieldName, T fieldValue) {
-		try
-		{
-			Field field = User.class.getDeclaredField(fieldName.toString());
-			field.setAccessible(true);
-			field.set(user, fieldValue);
-		}
-		catch(NoSuchFieldException | IllegalAccessException e)
-		{
-			throw new IllegalArgumentException("Invalid field: "+fieldName);
-		}
-		
-	}
+	
+//	@Override
+//	public <T> void setFieldValue(User user, T fieldName, T fieldValue) {
+//		try
+//		{
+//			Field field = User.class.getDeclaredField(fieldName.toString());
+//			field.setAccessible(true);
+//			field.set(user, fieldValue);
+//		}
+//		catch(NoSuchFieldException | IllegalAccessException e)
+//		{
+//			throw new IllegalArgumentException("Invalid field: "+fieldName);
+//		}
+//		
+//	}
 
+	
 	@Override
 	public void deleteUserById(Long id) {
 		try
@@ -310,6 +376,7 @@ public class UserServiceImpl implements UserService {
 		}
 	}
 
+	
 	@Override
 	public void deleteAllUsers() throws Exception {
 		try
@@ -321,19 +388,20 @@ public class UserServiceImpl implements UserService {
 			throw new Exception("Failed to delete all the users");
 		}
 	}
+	
 
-	@Override
-	public <T> void deleteUserByField(T fieldName, T fieldValue) {
-		try
-		{
-			List<User> users = findUserByField(fieldName, fieldValue);
-			userRepo.deleteAll(users);
-		}
-		catch(Exception e)
-		{
-			throw new IllegalArgumentException("Failed to delete user by "+fieldName+" : '"+fieldValue+"'");
-		}
-		
-	}
+//	@Override
+//	public <T> void deleteUserByField(T fieldName, T fieldValue) {
+//		try
+//		{
+//			List<User> users = findUserByField(fieldName, fieldValue);
+//			userRepo.deleteAll(users);
+//		}
+//		catch(Exception e)
+//		{
+//			throw new IllegalArgumentException("Failed to delete user by "+fieldName+" : '"+fieldValue+"'");
+//		}
+//		
+//	}
 
 }

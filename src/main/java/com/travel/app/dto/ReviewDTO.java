@@ -1,5 +1,7 @@
 package com.travel.app.dto;
 
+import com.travel.app.enums.Status;
+
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -12,13 +14,10 @@ import lombok.Setter;
 @Setter
 public class ReviewDTO {
 
-	@NotNull(message = "review user is required")
 	private Long userId;
 	
-	@NotNull(message = "review place is required")
 	private Long placeId; 
 	
-	@NotNull(message = "place rating is required")
 	@Min(1)
 	@Max(5)
 	private Integer rating;
@@ -26,7 +25,6 @@ public class ReviewDTO {
 	@Size(max = 1500)
 	private String review;
 	
-	@NotNull(message = "review status is required")
-	private String status;
+	private Status status;
 	
 }

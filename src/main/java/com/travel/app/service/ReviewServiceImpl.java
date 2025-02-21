@@ -1,6 +1,7 @@
 package com.travel.app.service;
 
 import java.lang.reflect.Field;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -35,12 +36,6 @@ public class ReviewServiceImpl<T> implements ReviewService {
 	@Autowired
 	private ReviewRepository ReviewRepo;
 	
-	@Autowired
-	private UserRepository UserRepo;
-	
-	@Autowired
-	private PlaceRepository PlaceRepo;
-	
 	@Override
 	public Review saveSingleReview(ReviewDTO reviewDTO)
 	{
@@ -49,34 +44,31 @@ public class ReviewServiceImpl<T> implements ReviewService {
 			Long userId = reviewDTO.getUserId();
 			Long placeId = reviewDTO.getPlaceId();
  			Optional<Review> rCheck = ReviewRepo.findReviewByUserAndPlace(userId, placeId);
- 			Review rvw = new Review();
-			if(rCheck == null)
-			{
-				rvw = modelMapper.map(reviewDTO, Review.class);
-				rvw = ReviewRepo.save(rvw);
-				if(rvw != null)
-				{
-					//return plc == null ? null : plc;
-					return rvw;
-				}
-				else
-				{
-					throw new SaveEntityException("Failed to save review");	
-				}
-			}
-			else
+ 			Review review = new Review();
+			
+ 			if(rCheck.isPresent())
 			{
 				throw new DuplicateEntityException(placeId+" review from '"+userId+"' already exists.");	
 			}
+			
+			review = modelMapper.map(reviewDTO, Review.class);
+			review = ReviewRepo.save(review);
+			
+			if(review == null)
+			{
+				throw new SaveEntityException("Failed to save review");	
+			}
+				
+			return review;
 			
 		}
 		catch(Exception e)
 		{
 			throw new SaveEntityException("Failed to save review");
-			//e.printStackTrace();
 		}
 		
 	}
+	
 	
 	@Override
 	public List<Review> saveAllReview(List<ReviewDTO> reviewsDTO)
@@ -86,57 +78,50 @@ public class ReviewServiceImpl<T> implements ReviewService {
 			List<Review> reviews = new ArrayList<Review>();
 			Optional<Review> OptReview = null;
 			Long userId,placeId;
-			for(ReviewDTO rvwDTO : reviewsDTO)
+			for(ReviewDTO reviewDTO : reviewsDTO)
 			{
-				userId = rvwDTO.getUserId();
-				placeId = rvwDTO.getPlaceId();
+				userId = reviewDTO.getUserId();
+				placeId = reviewDTO.getPlaceId();
 				OptReview = ReviewRepo.findReviewByUserAndPlace(userId, placeId);
-				if(OptReview==null)
-				{
-					Review tempRvw = modelMapper.map(rvwDTO, Review.class);
-					reviews.add(tempRvw);
-				}
-				else
+				
+				if(OptReview.isPresent())
 				{
 					throw new DuplicateEntityException(placeId+" review from '"+userId+"' already exists.");
 				}
 				
+				Review tempRvw = modelMapper.map(reviewDTO, Review.class);
+				reviews.add(tempRvw);
 			}
 
 			reviews = ReviewRepo.saveAll(reviews);
-			if(reviews != null)
-			{
-				return reviews;
-			}
-			else
+			if(reviews == null)
 			{
 				throw new SaveEntityException("Failed to save given reviews");
 			}
-			//return reviews == null ? null : reviews; 
+			
+			return reviews;
 		}
 		catch(Exception e)
 		{
 			throw new SaveEntityException("Failed to save given reviews");
-			//e.printStackTrace();
 		}
 		
-		//return null;
 	}
+	
 	
 	@Override
 	public Optional<Review> findReviewById(Long id)
 	{
 		try
 		{
-			Optional<Review> plc = ReviewRepo.findById(id);
-			if(plc!=null)
-			{
-				return plc;
-			}
-			else
+			Optional<Review> review = ReviewRepo.findById(id);
+			if(review==null)
 			{
 				throw new EntityNotFoundException("Review with '"+id+"' not found");
 			}
+				
+			return review;
+			
 		}
 		catch(Exception e)
 		{
@@ -145,34 +130,34 @@ public class ReviewServiceImpl<T> implements ReviewService {
 	}
 	
 
-	@Override
-	public <T> List<Review> findReviewByField(T fieldName,T fieldValue)
-	{
-		try
-		{
-			List<Review> reviews = ReviewRepo.searchByField(fieldName, fieldValue);
-			if(reviews!=null)
-			{
-				return reviews;
-			}
-			else
-			{
-				throw new EntityNotFoundException("Review with '"+fieldName+"' '"+fieldValue+"' not found");
-			}
-			
-		}
-		catch(Exception e)
-		{
-			throw new EntityNotFoundException("Review with '"+fieldName+"' '"+fieldValue+"' not found");
-		}
-	}
+//	@Override
+//	public <T> List<Review> findReviewByField(T fieldName,T fieldValue)
+//	{
+//		try
+//		{
+//			List<Review> reviews = ReviewRepo.searchByField(fieldName, fieldValue);
+//			if(reviews==null)
+//			{
+//				throw new EntityNotFoundException("Review with '"+fieldName+"' '"+fieldValue+"' not found");
+//			}
+//				
+//			return reviews;
+//			
+//		}
+//		catch(Exception e)
+//		{
+//			throw new EntityNotFoundException("Review with '"+fieldName+"' '"+fieldValue+"' not found");
+//		}
+//	}
+	
 	
 	@Override
 	public Optional<Review> findReviewByUserAndPlace(Long userId, Long reviewId)
 	{
-		try{
-			Optional<Review> rvw = ReviewRepo.findReviewByUserAndPlace(userId, reviewId);
-			return rvw == null ? null : rvw;
+		try
+		{
+			Optional<Review> review = ReviewRepo.findReviewByUserAndPlace(userId, reviewId);
+			return review == null ? null : review;
 		}
 		catch(Exception e)
 		{
@@ -180,19 +165,21 @@ public class ReviewServiceImpl<T> implements ReviewService {
 		}
 	}
 	
+	
 	@Override
 	public List<Review> findAllReviews()
 	{
 		try
 		{
-			List<Review> plcs = ReviewRepo.findAll();
-			return plcs == null ? null : plcs;
+			List<Review> reviews = ReviewRepo.findAll();
+			return reviews == null ? null : reviews;
 		}
 		catch(Exception e)
 		{
 			throw new EntityNotFoundException("Failed to find all reviews");
 		}
 	}
+	
 	
 	@Override
 	public <T> Page<Review> findAllReviewInPages(int page, int size, T sortBy, String sortDir)
@@ -210,27 +197,40 @@ public class ReviewServiceImpl<T> implements ReviewService {
 		}
 	}
 	
+	
 	@Override
 	public Review updateReview(Long id, ReviewDTO reviewDTO)
 	{
 		try
 		{
-			Review plc = ReviewRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("No review found with ID "+id));
-			if(plc==null)
+			Review review = ReviewRepo.findById(id).orElseThrow(() -> new EntityNotFoundException("No review found with ID "+id));
+			
+			if(reviewDTO.getRating()!=null && ((reviewDTO.getRating()<=5) && (reviewDTO.getRating()>0)))
 			{
-				plc = modelMapper.map(reviewDTO, Review.class);
-				return ReviewRepo.save(plc);
+				review.setRating(reviewDTO.getRating());
 			}
-			else
+			
+			if(reviewDTO.getReview()!=null && !reviewDTO.getReview().trim().isEmpty())
 			{
-				throw new SaveEntityException("Failed to update review");
+				review.setReview(reviewDTO.getReview());
 			}
+			
+			if(reviewDTO.getStatus()!=null)
+			{
+				review.setStatus(reviewDTO.getStatus());
+			}
+			
+			review.setModifiedDate(LocalDateTime.now());
+			review.setModifiedBy("new current session user");
+		
+			return ReviewRepo.save(review);
 		}
 		catch(Exception e)
 		{
 			throw new SaveEntityException("Failed to update review");
 		}
 	}
+	
 	
 	@Override
 	public List<Review> updateAllReviews(List<Long> idList, List<ReviewDTO> reviewsDTO)
@@ -241,14 +241,36 @@ public class ReviewServiceImpl<T> implements ReviewService {
 			{
 				throw new IllegalArgumentException("ID list & DTO list must have the same size");
 			}
+			
 			List<Review> reviews = new ArrayList<>();
+			
 			for(int i=0; i<idList.size();i++)
 			{
-				final Long reviewId = idList.get(i);
+				Long reviewId = idList.get(i);
 				Review review = ReviewRepo.findById(reviewId).orElseThrow(() -> new EntityNotFoundException("No review found with ID "+reviewId));
-				modelMapper.map(reviewsDTO.get(i), review);
+				ReviewDTO reviewDTO = reviewsDTO.get(i);
+				
+				if(reviewDTO.getRating()!=null && ((reviewDTO.getRating()<=5) && (reviewDTO.getRating()>0)))
+				{
+					review.setRating(reviewDTO.getRating());
+				}
+				
+				if(reviewDTO.getReview()!=null && !reviewDTO.getReview().trim().isEmpty())
+				{
+					review.setReview(reviewDTO.getReview());
+				}
+				
+				if(reviewDTO.getStatus()!=null)
+				{
+					review.setStatus(reviewDTO.getStatus());
+				}
+				
+				review.setModifiedDate(LocalDateTime.now());
+				review.setModifiedBy("new current session user");
+				
 				reviews.add(ReviewRepo.save(review));		
 			}
+			
 			return reviews;
 		}
 		catch(Exception e)
@@ -257,73 +279,77 @@ public class ReviewServiceImpl<T> implements ReviewService {
 		}
 	}
 	
-	@Override
-	public <T> List<Review> updateAllReviewByFields(List<T> reviewFieldList, List<T> reviewValueList, List<ReviewDTO> updateReviewsDTO)
-	{
-		if(reviewFieldList.size() != reviewValueList.size() || reviewValueList.size() != updateReviewsDTO.size())
-		{
-			throw new IllegalArgumentException("ID list & DTO list must have the same size");
-		}
-		try
-		{
-			List<Review> updatedReviews = new ArrayList<>();
-			
-			for(int i=0;i<reviewFieldList.size();i++)
-			{
-				T fieldName = reviewFieldList.get(i);
-				T fieldValue = reviewValueList.get(i);
-				ReviewDTO reviewDTO = updateReviewsDTO.get(i);
-				updatedReviews = findReviewByField(fieldName,fieldValue);
-				modelMapper.map(reviewDTO, updatedReviews.get(i));
-				updatedReviews.add(ReviewRepo.save(updatedReviews.get(i)));
-				
-				throw new EntityNotFoundException("No review found with "+fieldName+" : '"+fieldValue+"'");
-		
-			}
-			
-			return updatedReviews;
-		}
-		catch(Exception e)
-		{
-			throw new SaveEntityException("Failed to update given reviews" +e.getMessage());
-		}
-	}
 	
-	@Override
-	public <T> List<Review> updateAllReviewBySingleField(T fieldName, T fieldValue)
-	{
-		
-		try
-		{
-			List<Review> reviews = ReviewRepo.findAll();
-			for(Review plc : reviews)
-			{
-				setFieldValue(plc, fieldName, fieldValue);
-				ReviewRepo.save(plc);
-			}
-			return reviews;
-		}
-		catch(Exception e)
-		{
-			throw new SaveEntityException("Failed to update all review's "+fieldName+" with '"+fieldValue+"'");
-		}
-	}
+//	@Override
+//	public <T> List<Review> updateAllReviewByFields(List<T> reviewFieldList, List<T> reviewValueList, List<ReviewDTO> updateReviewsDTO)
+//	{
+//		if(reviewFieldList.size() != reviewValueList.size() || reviewValueList.size() != updateReviewsDTO.size())
+//		{
+//			throw new IllegalArgumentException("ID list & DTO list must have the same size");
+//		}
+//		try
+//		{
+//			List<Review> updatedReviews = new ArrayList<>();
+//			
+//			for(int i=0;i<reviewFieldList.size();i++)
+//			{
+//				T fieldName = reviewFieldList.get(i);
+//				T fieldValue = reviewValueList.get(i);
+//				ReviewDTO reviewDTO = updateReviewsDTO.get(i);
+//				updatedReviews = findReviewByField(fieldName,fieldValue);
+//				modelMapper.map(reviewDTO, updatedReviews.get(i));
+//				updatedReviews.add(ReviewRepo.save(updatedReviews.get(i)));
+//				
+//				throw new EntityNotFoundException("No review found with "+fieldName+" : '"+fieldValue+"'");
+//		
+//			}
+//			
+//			return updatedReviews;
+//		}
+//		catch(Exception e)
+//		{
+//			throw new SaveEntityException("Failed to update given reviews" +e.getMessage());
+//		}
+//	}
 	
-	@Override
-	public <T> void setFieldValue(Review review, T fieldName, T fieldValue)
-	{
-		try
-		{
-			Field field = Review.class.getDeclaredField(fieldName.toString());
-			field.setAccessible(true);
-			field.set(review, fieldValue);
-		}
-		catch(NoSuchFieldException | IllegalAccessException e)
-		{
-			throw new IllegalArgumentException("Invalid field: "+fieldName);
-		}
-	}
+	
+//	@Override
+//	public <T> List<Review> updateAllReviewBySingleField(T fieldName, T fieldValue)
+//	{
+//		
+//		try
+//		{
+//			List<Review> reviews = ReviewRepo.findAll();
+//			for(Review review : reviews)
+//			{
+//				setFieldValue(review, fieldName, fieldValue);
+//				ReviewRepo.save(review);
+//			}
+//			return reviews;
+//		}
+//		catch(Exception e)
+//		{
+//			throw new SaveEntityException("Failed to update all review's "+fieldName+" with '"+fieldValue+"'");
+//		}
+//	}
+	
+	
+//	@Override
+//	public <T> void setFieldValue(Review review, T fieldName, T fieldValue)
+//	{
+//		try
+//		{
+//			Field field = Review.class.getDeclaredField(fieldName.toString());
+//			field.setAccessible(true);
+//			field.set(review, fieldValue);
+//		}
+//		catch(NoSuchFieldException | IllegalAccessException e)
+//		{
+//			throw new IllegalArgumentException("Invalid field: "+fieldName);
+//		}
+//	}
  
+	
 	@Override
 	public void deleteReviewById(Long id) {
 		try
@@ -337,6 +363,7 @@ public class ReviewServiceImpl<T> implements ReviewService {
 		
 	}
 
+	
 	@Override
 	public void deleteAllReviews() throws Exception {
 		try
@@ -350,20 +377,24 @@ public class ReviewServiceImpl<T> implements ReviewService {
 		
 	}
 
-	@Override
-	public <T> void deleteReviewByField(T fieldName, T fieldValue)
-	{
-		try
-		{
-			List<Review> reviews = findReviewByField(fieldName, fieldValue);
-			ReviewRepo.deleteAll(reviews);
-		}
-		catch(Exception e)
-		{
-			throw new IllegalArgumentException("Failed to delete review by "+fieldName+" : '"+fieldValue+"'");
-		}
-		
-	}
+
+	
+
+	
+//	@Override
+//	public <T> void deleteReviewByField(T fieldName, T fieldValue)
+//	{
+//		try
+//		{
+//			List<Review> reviews = findReviewByField(fieldName, fieldValue);
+//			ReviewRepo.deleteAll(reviews);
+//		}
+//		catch(Exception e)
+//		{
+//			throw new IllegalArgumentException("Failed to delete review by "+fieldName+" : '"+fieldValue+"'");
+//		}
+//		
+//	}
 	
 	
 	

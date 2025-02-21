@@ -14,7 +14,7 @@ import com.travel.app.model.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-	@Query("SELECT u from Users u WHERE u.userName = :userName AND u.userMail = :userMail")
+	@Query("SELECT u from User u WHERE u.userName = :userName AND u.email = :userMail")
 	Optional<User> findUserByNameAndMail(@Param("userName") String userName, @Param("userMail") String userMail);
 
 	@Query(value = "SELECT * FROM Users WHERE ?1 LIKE %?2%", nativeQuery = true)

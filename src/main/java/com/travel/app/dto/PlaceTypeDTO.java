@@ -1,6 +1,7 @@
 package com.travel.app.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import com.travel.app.enums.Status;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,11 +9,9 @@ import lombok.Setter;
 @Setter
 public class PlaceTypeDTO {
 
-	@NotBlank(message="place type is required")
 	private String type;
 	
 	private String description;
 
-	@NotBlank(message="place type status is required")
-	private String status;
+	private Status status;
 }

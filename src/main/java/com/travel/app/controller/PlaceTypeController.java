@@ -36,6 +36,14 @@ public class PlaceTypeController {
 				.body(new ApiResponse<>("Success", "New placeType saved successfully", placeType));
 	}
 	
+	@PostMapping("/savePlaceType")
+	public ResponseEntity<ApiResponse<List<PlaceType>>> saveAllPlaceType(@Valid @RequestBody List<PlaceTypeDTO> placeTypeDTO)
+	{
+		List<PlaceType> placeTypeList = PlaceTypeServ.saveAllPlaceType(placeTypeDTO);
+		return ResponseEntity.status(HttpStatus.CREATED)
+				.body(new ApiResponse<>("Success", "All placeTypes saved successfully", placeTypeList));
+	}
+	
 	@GetMapping("/getAllPlaceTypes")
 	public ResponseEntity<ApiResponse<List<PlaceType>>> getAllPlaceType()
 	{
@@ -43,24 +51,38 @@ public class PlaceTypeController {
 		return ResponseEntity.ok(new ApiResponse<>("Success", "All placeTypes fetched successfully", placeTypes));
 	}
 	
-	@GetMapping("/findPlaceType/{p_id}")
-	public ResponseEntity<ApiResponse<Optional<PlaceType>>> getPlaceTypeById(@PathVariable Long id)
+	@GetMapping("/findPlaceType/{pt_id}")
+	public ResponseEntity<ApiResponse<Optional<PlaceType>>> getPlaceTypeById(@PathVariable("pt_id") Long pt_id)
 	{
-		Optional<PlaceType> placeType = PlaceTypeServ.findPlaceTypeById(id);
+		Optional<PlaceType> placeType = PlaceTypeServ.findPlaceTypeById(pt_id);
 		return ResponseEntity.ok(new ApiResponse<>("Success", "PlaceType found", placeType));
 	}
 	
 	@PutMapping("/updatePlaceType/{pt_id}")
-	public ResponseEntity<ApiResponse<PlaceType>> updatePlaceType(@PathVariable("p_id") Long pt_id, @Valid @RequestBody PlaceTypeDTO placeTypeDTO)
+	public ResponseEntity<ApiResponse<PlaceType>> updatePlaceType(@PathVariable("pt_id") Long pt_id, @Valid @RequestBody PlaceTypeDTO placeTypeDTO)
 	{
 		PlaceType placeType = PlaceTypeServ.updatePlaceType(pt_id, placeTypeDTO);
 		return ResponseEntity.ok(new ApiResponse<>("Success","PlaceType updated succesfully", placeType));
 	}
 	
-	@DeleteMapping("deletePlaceType/{pt_id}")
-	public ResponseEntity<ApiResponse<Void>> deletePlaceType(@PathVariable Long pt_id)
+	@PutMapping("/updateAllPlaceType/{pt_id}")
+	public ResponseEntity<ApiResponse<List<PlaceType>>> updatePlaceType(@PathVariable("pt_id") List<Long> pt_id, @Valid @RequestBody List<PlaceTypeDTO> placeTypeDTO)
+	{
+		List<PlaceType> placeType = PlaceTypeServ.updateAllPlaceTypes(pt_id, placeTypeDTO);
+		return ResponseEntity.ok(new ApiResponse<>("Success","PlaceType updated succesfully", placeType));
+	}
+	
+	@DeleteMapping("/deletePlaceType/{pt_id}")
+	public ResponseEntity<ApiResponse<Void>> deletePlaceType(@PathVariable("pt_id") Long pt_id)
 	{
 		PlaceTypeServ.deletePlaceTypeById(pt_id);
 		return ResponseEntity.ok(new ApiResponse<>("Success", "PlaceType deleted succesfully", null));
+	}
+	
+	@DeleteMapping("/deleteAllPlaceType")
+	public ResponseEntity<ApiResponse<Void>> deleteAllPlaceType() throws Exception
+	{
+		PlaceTypeServ.deleteAllPlaceTypes();
+		return ResponseEntity.ok(new ApiResponse<>("Success", "All PlaceTypes deleted succesfully", null));
 	}
 }

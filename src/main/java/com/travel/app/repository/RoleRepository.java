@@ -13,8 +13,8 @@ import com.travel.app.model.Role;
 @Repository
 public interface RoleRepository extends JpaRepository<Role, Long> {
 
-//	@Query("SELECT r FROM Role r WHERE r.userId = :userId AND r.placeId = :placeId")
-//	Optional<Role> findRoleByUserAndPlace(@Param("userId") Long userId, @Param("placeId") Long placeId);
+	@Query("SELECT r FROM Role r WHERE r.role = :role")
+	Optional<Role> findRoleByRole(@Param("role") String role);
 	
 	@Query(value = "SELECT * FROM Role WHERE ?1 LIKE %?2%", nativeQuery = true)
 	<T> List<Role> searchByField(T fieldName, T fieldValue);

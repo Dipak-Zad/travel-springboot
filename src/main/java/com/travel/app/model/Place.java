@@ -10,8 +10,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import com.travel.app.enums.*;
+
 @Entity
-@Table(name="places")
+@Table(name="place")
 @Data
 public class Place {
 
@@ -19,33 +21,34 @@ public class Place {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
-	@Column(name ="place_name", nullable = false)
+	@Column(name ="place_name")
 	private String placeName;
 
 	@Column(nullable = false)
 	private Boolean availability; //true = avail/false = unavail
 
 	@ManyToOne
-	@JoinColumn(name = "place_type_id", nullable = false)
+	@JoinColumn(name = "place_type_id")
 	private PlaceType placeType;
 	
-	private String timing; //opening days & hrs
+	//private String timing; //opening days & hrs
 	
-	@Column(name ="place_address", nullable = false)
+	@Column(name ="place_address")
 	private String placeAddress; 
 
 	//private List<String> location; //coordinates should be saved , will try later on 
 	
 	private String description;
 	
+	@Enumerated(EnumType.STRING)
 	@Column(nullable=false)
-	private String status="ACTIVE";
+	private Status status= Status.ACTIVE;
 	
 	@CreationTimestamp
-	@Column(name="created_date", nullable=false)
+	@Column(name="created_date")
 	private LocalDateTime createdDate;
 	
-	@Column(name="created_by", nullable = false)
+	@Column(name="created_by")
 	private String createdBy;
 	
 	@UpdateTimestamp

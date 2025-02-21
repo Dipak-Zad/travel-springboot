@@ -1,7 +1,7 @@
 package com.travel.app.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import com.travel.app.enums.Status;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,9 +9,7 @@ import lombok.Setter;
 @Setter
 public class RoleDTO {
 
-	@NotBlank(message="role is required")
 	private String role;
 
-	@NotNull(message="role status is required")
-	private String status;
+	private Status status;
 }
