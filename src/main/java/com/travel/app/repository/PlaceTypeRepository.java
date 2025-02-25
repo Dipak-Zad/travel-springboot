@@ -19,16 +19,16 @@ public interface PlaceTypeRepository extends JpaRepository<PlaceType, Long> {
 //	@Query(value = "SELECT * FROM PlaceType WHERE ?1 LIKE %?2%", nativeQuery = true)
 //	<T> List<PlaceType> searchByField(T fieldName, T fieldValue);
 	
-//	@Query(value = "SELECT * FROM PlaceType WHERE :fieldName LIKE %:fieldValue%", nativeQuery = true)
-//	List<PlaceType> searchByField(@Param("fieldName") String fieldName, @Param("fieldValue") String fieldValue);
+//	@Query(value = "SELECT * FROM place_type WHERE :fieldName = :fieldValue", nativeQuery = true)
+//	List<PlaceType> searchByField(@Param("fieldName") String fieldName, @Param("fieldValue") T fieldValue);
 	
-	@Query(value = "SELECT * FROM place_type WHERE :fieldName IN " +
-		       "(SELECT column_name FROM all_tab_columns WHERE table_name = 'PLACE_TYPE') " +
-		       "AND ANYDATA.GETVARCHAR2(ANYDATA.convert((SELECT COLUMN_VALUE FROM JSON_TABLE( " +
-		       "(SELECT JSON_OBJECTAGG(column_name, data_type) FROM all_tab_columns WHERE table_name = 'PLACE_TYPE'), " +
-		       "'$' COLUMNS (COLUMN_VALUE VARCHAR2(4000) PATH '$.:fieldName'))))) = " +
-		       "ANYDATA.GETVARCHAR2(ANYDATA.convert(:fieldValue))",
-		       nativeQuery = true)
-	List<PlaceType> searchByField(@Param("fieldName") String fieldName, @Param("fieldValue") Object fieldValue);
+//	@Query(value = "SELECT * FROM place_type WHERE :fieldName IN " +
+//		       "(SELECT column_name FROM all_tab_columns WHERE table_name = 'PLACE_TYPE') " +
+//		       "AND ANYDATA.GETVARCHAR2(ANYDATA.convert((SELECT COLUMN_VALUE FROM JSON_TABLE( " +
+//		       "(SELECT JSON_OBJECTAGG(column_name, data_type) FROM all_tab_columns WHERE table_name = 'PLACE_TYPE'), " +
+//		       "'$' COLUMNS (COLUMN_VALUE VARCHAR2(4000) PATH '$.:fieldName'))))) = " +
+//		       "ANYDATA.GETVARCHAR2(ANYDATA.convert(:fieldValue))",
+//		       nativeQuery = true)
+//	List<PlaceType> searchByField(@Param("fieldName") String fieldName, @Param("fieldValue") Object fieldValue);
 	
 }

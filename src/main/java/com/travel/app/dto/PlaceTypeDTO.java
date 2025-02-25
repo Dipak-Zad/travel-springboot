@@ -9,9 +9,15 @@ import lombok.Setter;
 @Setter
 public class PlaceTypeDTO {
 
+	private Long Id;
+	
 	private String type;
 	
 	private String description;
+	
+	private String fieldName;
 
+	private String fieldValue;
+	
 	private Status status;
 }
