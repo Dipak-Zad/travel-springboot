@@ -16,7 +16,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class UserDTO {
-
+	
+	private Long Id;
+	
 	//@NotBlank(message = "user's name is required")
 	@Size(min = 2, max = 100)
 	private String userName;
@@ -41,4 +43,8 @@ public class UserDTO {
 	
 	//@NotNull(message = "user's status is required")
 	private Status status;
+	
+	private String fieldName;
+
+	private String fieldValue;
 }

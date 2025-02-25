@@ -10,20 +10,20 @@ import com.travel.app.model.Review;
 
 public interface ReviewService {
 	
-	Review saveSingleReview(ReviewDTO placeDTO);
-	List<Review> saveAllReview(List<ReviewDTO> placesDTO);
+	Review saveSingleReview(ReviewDTO reviewDTO);
+	List<Review> saveAllReview(List<ReviewDTO> reviewsDTO);
 	Optional<Review> findReviewById(Long id);
-	//<T> List<Review> findReviewByField(T fieldname,T fieldvalue);
-	Optional<Review> findReviewByUserAndPlace(Long userId, Long placeId);
+	<T> List<Review> findReviewByField(String fieldname,T fieldvalue);
+	Optional<Review> findReviewByUserAndPlace(Long userId, Long reviewId);
 	List<Review> findAllReviews();
-	<T> Page<Review> findAllReviewInPages(int pageNumber, int pageSize, T sortByField, String sortDirection);
-	Review updateReview(Long id, ReviewDTO placeDTO);
-	List<Review> updateAllReviews(List<Long> idList, List<ReviewDTO> placeDTOList);
-	//<T> List<Review> updateAllReviewByFields(List<T> fieldList, List<T> valueList, List<ReviewDTO> placesDTO);
-	//<T> List<Review> updateAllReviewBySingleField(T fieldName, T fieldValue);
-	//<T> void setFieldValue(Review place, T fiedlName, T fieldValue);
+	<T> Page<Review> findAllReviewInPages(int pageNumber, int pageSize, String sortByField, String sortDirection);
+	Review updateReview(Long id, ReviewDTO reviewDTO);
+	List<Review> updateAllReviews(List<ReviewDTO> reviewDTOList);
+	//<T> List<Review> updateAllReviewByFields(List<T> fieldList, List<T> valueList, List<ReviewDTO> reviewsDTO);
+	<T> List<Review> updateAllReviewBySingleField(String fieldName, T fieldValue);
+	<T> void setFieldValue(Review review, String fiedlName, T fieldValue);
 	void deleteReviewById(Long id);
 	void deleteAllReviews() throws Exception;
-	//<T> void deleteReviewByField(T fieldName, T fieldValue);
+	<T> void deleteReviewByField(String fieldName, T fieldValue);
 
 }

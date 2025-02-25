@@ -9,7 +9,13 @@ import lombok.Setter;
 @Setter
 public class RoleDTO {
 
+	private Long Id;
+	
 	private String role;
 
 	private Status status;
+	
+	private String fieldName;
+
+	private String fieldValue;
 }

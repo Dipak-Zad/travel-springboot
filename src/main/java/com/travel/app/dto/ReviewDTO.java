@@ -14,6 +14,8 @@ import lombok.Setter;
 @Setter
 public class ReviewDTO {
 
+	private Long Id;
+	
 	private Long userId;
 	
 	private Long placeId; 
@@ -26,5 +28,9 @@ public class ReviewDTO {
 	private String review;
 	
 	private Status status;
+	
+	private String fieldName;
+
+	private String fieldValue;
 	
 }

@@ -69,7 +69,6 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 		catch(Exception e)
 		{
 			throw new SaveEntityException("Failed to save placeType");
-			//e.printStackTrace();
 		}
 		
 	}
@@ -124,9 +123,7 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 	{
 		try
 		{
-			System.out.println("asd"+id);
 			Optional<PlaceType> plc = PlaceTypeRepo.findById(id);
-			System.out.println("asd"+plc);
 			if(plc.isPresent())
 			{
 				return plc;
@@ -148,8 +145,6 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 	{
 		try
 		{
-			//Field field = PlaceType.class.getDeclaredField(fieldName.toString());
-			
 			 String query = "SELECT * FROM place_type WHERE " + fieldName + " = ?";
 			 
 			 return entityManager.createNativeQuery(query, PlaceType.class)
@@ -182,11 +177,8 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 	{
 		try
 		{
-			
-			System.out.println(page+", "+size+", "+sortBy+", "+sortDir);
 			Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 			Pageable pageable = PageRequest.of(page, size, sort);
-			System.out.println("page "+pageable);
 			return PlaceTypeRepo.findAll(pageable);
 					
 		}
@@ -271,40 +263,6 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 			throw new SaveEntityException("Failed to update placeType");
 		}
 	}
-	
-//	@Override
-//	public <T> List<PlaceType> updateAllPlaceTypeByFields(List<PlaceTypeDTO> updatePlaceTypesDTO)
-//	{
-//		try
-//		{
-//			List<PlaceType> updatedPlaceTypes = new ArrayList<>();
-//			
-//			for(int i=0;i<updatePlaceTypesDTO.size();i++)
-//			{
-//				PlaceTypeDTO placeTypeDTO = updatePlaceTypesDTO.get(i);
-//				String fieldName = placeTypeDTO.getFieldName();
-//				T fieldValue = (T) placeTypeDTO.getFieldValue();
-//				
-//				String query = "SELECT pt FROM place_type pt WHERE " + fieldName + " = ?";
-//				
-//				updatedPlaceTypes = entityManager.createNativeQuery(query, PlaceType.class)
-//	                     .setParameter(1, fieldValue)
-//	                     .getResultList();
-//				//updatedPlaceTypes = findPlaceTypeByField(fieldName,fieldValue);
-//				modelMapper.map(placeTypeDTO, updatedPlaceTypes.get(i));
-//				updatedPlaceTypes.add(PlaceTypeRepo.save(updatedPlaceTypes.get(i)));
-//				
-//				throw new EntityNotFoundException("No placeType found with "+fieldName+" : '"+fieldValue+"'");
-//		
-//			}
-//			
-//			return updatedPlaceTypes;
-//		}
-//		catch(Exception e)
-//		{
-//			throw new SaveEntityException("Failed to update given placeTypes" +e.getMessage());
-//		}
-//	}
 
 	@Transactional
 	@Override
@@ -319,11 +277,10 @@ public class PlaceTypeServiceImpl<T> implements PlaceTypeService {
 	            throw new EntityNotFoundException("No placeTypes found to update");
 	        }
 			
-			for(PlaceType plc : placeTypes)
+			for(PlaceType plctp : placeTypes)
 			{
-				setFieldValue(plc, fieldName, fieldValue);
-				System.out.println("asd "+plc.getStatus());
-				PlaceTypeRepo.save(plc);
+				setFieldValue(plctp, fieldName, fieldValue);
+				PlaceTypeRepo.save(plctp);
 			}
 			return placeTypes;
 		}

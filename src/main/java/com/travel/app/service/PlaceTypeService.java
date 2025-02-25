@@ -20,7 +20,7 @@ public interface PlaceTypeService {
 	List<PlaceType> updateAllPlaceTypes(List<PlaceTypeDTO> placeTypeDTOList);
 //	<T> List<PlaceType> updateAllPlaceTypeByFields(List<PlaceTypeDTO> placeTypeDTOList);  //useless or problematic query
 	<T> List<PlaceType> updateAllPlaceTypeBySingleField(String fieldName, T fieldValue);
-	<T> void setFieldValue(PlaceType placeType, String fiedlName, T fieldValue);
+	<T> void setFieldValue(PlaceType placeType, String fieldlName, T fieldValue);
 	void deletePlaceTypeById(Long id);
 	void deleteAllPlaceTypes() throws Exception;
 	<T> void deletePlaceTypeByField(String fieldName, T fieldValue);

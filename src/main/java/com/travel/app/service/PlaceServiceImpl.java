@@ -18,8 +18,10 @@ import com.travel.app.dto.PlaceDTO;
 import com.travel.app.exception.DuplicateEntityException;
 import com.travel.app.exception.SaveEntityException;
 import com.travel.app.model.Place;
+import com.travel.app.model.PlaceType;
 import com.travel.app.repository.PlaceRepository;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
@@ -27,7 +29,9 @@ public class PlaceServiceImpl<T> implements PlaceService {
 
 	@Autowired
 	private ModelMapper modelMapper;
-	
+
+	@Autowired
+	private EntityManager entityManager;
 	
 	@Autowired
 	private PlaceRepository PlaceRepo;
@@ -50,6 +54,10 @@ public class PlaceServiceImpl<T> implements PlaceService {
 			}
 			
 			place = modelMapper.map(placeDTO, Place.class);
+			place.setCreatedDate(LocalDateTime.now());
+			place.setCreatedBy("current session user");
+			place.setModifiedDate(LocalDateTime.now());
+			place.setModifiedBy("current session user");
 			place = PlaceRepo.save(place);
 			
 			if(place == null)
@@ -90,10 +98,15 @@ public class PlaceServiceImpl<T> implements PlaceService {
 				}
 					
 				Place tempPlc = modelMapper.map(placeDTO, Place.class);
+				tempPlc.setCreatedDate(LocalDateTime.now());
+				tempPlc.setCreatedBy("current session user");
+				tempPlc.setModifiedDate(LocalDateTime.now());
+				tempPlc.setModifiedBy("current session user");
 				places.add(tempPlc);
 			}
 
 			places = PlaceRepo.saveAll(places);
+			
 			if(places == null)
 			{
 				throw new SaveEntityException("Failed to save given places");
@@ -133,29 +146,29 @@ public class PlaceServiceImpl<T> implements PlaceService {
 	}
 	
 
-//	@Override
-//	public <T> List<Place> findPlaceByField(T fieldName,T fieldValue)
-//	{
-//		try
-//		{
-//			List<Place> places = PlaceRepo.searchByField(fieldName, fieldValue);
-//			if(places==null)
-//			{
-//				throw new EntityNotFoundException("Place with '"+fieldName+"' '"+fieldValue+"' not found");
-//			}
-//			return places;
-//		}
-//		catch(Exception e)
-//		{
-//			throw new EntityNotFoundException("Place with '"+fieldName+"' '"+fieldValue+"' not found");
-//		}
-//	}
+	@Override
+	public <T> List<Place> findPlaceByField(String fieldName,T fieldValue)
+	{
+		try
+		{
+			String query = "SELECT * FROM place WHERE " + fieldName + " = ?";
+			 
+			 return entityManager.createNativeQuery(query, PlaceType.class)
+                     .setParameter(1, fieldValue)
+                     .getResultList();
+		}
+		catch(Exception e)
+		{
+			throw new EntityNotFoundException("Place with '"+fieldName+"' '"+fieldValue+"' not found");
+		}
+	}
 	
 	
 	@Override
 	public Optional<Place> findPlaceByNameAndAddress(String pName, String pLocation)
 	{
-		try{
+		try
+		{
 			Optional<Place> place = PlaceRepo.findPlaceByNameAndAddress(pName, pLocation);
 			return place == null ? null : place;
 		}
@@ -182,11 +195,11 @@ public class PlaceServiceImpl<T> implements PlaceService {
 	
 	
 	@Override
-	public <T> Page<Place> findAllPlaceInPages(int page, int size, T sortBy, String sortDir)
+	public <T> Page<Place> findAllPlaceInPages(int page, int size, String sortBy, String sortDir)
 	{
 		try
 		{
-			Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(String.valueOf(sortBy)).ascending() : Sort.by(String.valueOf(sortBy)).descending();
+			Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 			Pageable pageable = PageRequest.of(page, size, sort);
 			return PlaceRepo.findAll(pageable);
 					
@@ -244,22 +257,18 @@ public class PlaceServiceImpl<T> implements PlaceService {
 	
 	
 	@Override
-	public List<Place> updateAllPlaces(List<Long> idList, List<PlaceDTO> placesDTO)
+	public List<Place> updateAllPlaces(List<PlaceDTO> placesDTO)
 	{
 		try
 		{
-			if(idList.size() != placesDTO.size())
-			{
-				throw new IllegalArgumentException("ID list & DTO list must have the same size");
-			}
 			
 			List<Place> places = new ArrayList<>();
 			
-			for(int i=0; i<idList.size();i++)
+			for(int i=0; i<placesDTO.size();i++)
 			{
-				final Long placeId = idList.get(i);
-				Place place = PlaceRepo.findById(placeId).orElseThrow(() -> new EntityNotFoundException("No place found with ID "+placeId));
 				PlaceDTO placeDTO = placesDTO.get(i);
+				Long placeId = placeDTO.getId();
+				Place place = PlaceRepo.findById(placeId).orElseThrow(() -> new EntityNotFoundException("No place found with ID "+placeId));
 				
 				if(placeDTO.getPlaceName()!=null && !placeDTO.getPlaceName().trim().isEmpty())
 				{
@@ -334,41 +343,53 @@ public class PlaceServiceImpl<T> implements PlaceService {
 //	}
 	
 	
-//	@Override
-//	public <T> List<Place> updateAllPlaceBySingleField(T fieldName, T fieldValue)
-//	{
-//		
-//		try
-//		{
-//			List<Place> places = PlaceRepo.findAll();
-//			for(Place place : places)
-//			{
-//				setFieldValue(place, fieldName, fieldValue);
-//				PlaceRepo.save(place);
-//			}
-//			return places;
-//		}
-//		catch(Exception e)
-//		{
-//			throw new SaveEntityException("Failed to update all place's "+fieldName+" with '"+fieldValue+"'");
-//		}
-//	}
+	@Override
+	public <T> List<Place> updateAllPlaceBySingleField(String fieldName, T fieldValue)
+	{
+		
+		try
+		{
+			List<Place> places = PlaceRepo.findAll();
+			
+			if (places.isEmpty()) {
+	            throw new EntityNotFoundException("No placeTypes found to update");
+	        }
+			
+			for(Place place : places)
+			{
+				setFieldValue(place, fieldName, fieldValue);
+				PlaceRepo.save(place);
+			}
+			return places;
+		}
+		catch(Exception e)
+		{
+			throw new SaveEntityException("Failed to update all place's "+fieldName+" with '"+fieldValue+"'");
+		}
+	}
 	
 	
-//	@Override
-//	public <T> void setFieldValue(Place place, T fieldName, T fieldValue)
-//	{
-//		try
-//		{
-//			Field field = Place.class.getDeclaredField(fieldName.toString());
-//			field.setAccessible(true);
-//			field.set(place, fieldValue);
-//		}
-//		catch(NoSuchFieldException | IllegalAccessException e)
-//		{
-//			throw new IllegalArgumentException("Invalid field: "+fieldName);
-//		}
-//	}
+	@Override
+	public <T> void setFieldValue(Place place, String fieldName, T fieldValue)
+	{
+		try
+		{
+			Field field = Place.class.getDeclaredField(fieldName.toString());
+			field.setAccessible(true);
+			if (field.getType().isEnum()) {
+	            @SuppressWarnings("unchecked")
+	            Class<Enum> enumType = (Class<Enum>) field.getType();
+	            Enum enumValue = Enum.valueOf(enumType, fieldValue.toString());
+	            field.set(place, enumValue);
+	        } else {
+	            field.set(place, fieldValue);
+	        }
+		}
+		catch(NoSuchFieldException | IllegalAccessException e)
+		{
+			throw new IllegalArgumentException("Invalid field: "+fieldName);
+		}
+	}
  
 	
 	@Override
@@ -399,20 +420,20 @@ public class PlaceServiceImpl<T> implements PlaceService {
 	}
 
 	
-//	@Override
-//	public <T> void deletePlaceByField(T fieldName, T fieldValue)
-//	{
-//		try
-//		{
-//			List<Place> places = findPlaceByField(fieldName, fieldValue);
-//			PlaceRepo.deleteAll(places);
-//		}
-//		catch(Exception e)
-//		{
-//			throw new IllegalArgumentException("Failed to delete place by "+fieldName+" : '"+fieldValue+"'");
-//		}
-//		
-//	}
+	@Override
+	public <T> void deletePlaceByField(String fieldName, T fieldValue)
+	{
+		try
+		{
+			List<Place> places = findPlaceByField(fieldName, fieldValue);
+			PlaceRepo.deleteAll(places);
+		}
+		catch(Exception e)
+		{
+			throw new IllegalArgumentException("Failed to delete place by "+fieldName+" : '"+fieldValue+"'");
+		}
+		
+	}
 	
 	
 	
@@ -425,6 +446,6 @@ public class PlaceServiceImpl<T> implements PlaceService {
 //		PlaceDTO placeDTO = modelMapper.map(place, PlaceDTO.class);
 //		return placeDTO;
 //	}
-	
+//	
 
 }

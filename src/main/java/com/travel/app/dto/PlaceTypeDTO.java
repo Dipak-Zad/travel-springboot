@@ -15,9 +15,9 @@ public class PlaceTypeDTO {
 	
 	private String description;
 	
+	private Status status;
+	
 	private String fieldName;
 
 	private String fieldValue;
-	
-	private Status status;
 }

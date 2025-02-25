@@ -11,6 +11,8 @@ import lombok.Setter;
 @Setter
 public class PlaceDTO {
 
+	private Long id;
+	
 	private String placeName;
 	
 	private Boolean availability;
@@ -27,6 +29,9 @@ public class PlaceDTO {
 	
 	private Status status;
 	
+	private String fieldName;
+
+	private String fieldValue;
 	
 	//for eg.
 	//@Email(message = "Invalid email format")

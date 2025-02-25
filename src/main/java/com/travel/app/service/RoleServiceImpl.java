@@ -1,5 +1,6 @@
 package com.travel.app.service;
 
+import java.lang.reflect.Field;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +17,11 @@ import org.springframework.stereotype.Service;
 import com.travel.app.dto.RoleDTO;
 import com.travel.app.exception.DuplicateEntityException;
 import com.travel.app.exception.SaveEntityException;
+import com.travel.app.model.PlaceType;
 import com.travel.app.model.Role;
 import com.travel.app.repository.RoleRepository;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
@@ -26,6 +29,9 @@ public class RoleServiceImpl<T> implements RoleService {
 
 	@Autowired
 	private ModelMapper modelMapper;
+
+	@Autowired
+	private EntityManager entityManager;
 	
 	@Autowired
 	private RoleRepository RoleRepo;
@@ -45,6 +51,10 @@ public class RoleServiceImpl<T> implements RoleService {
 			}
 			
 			modelMapper.map(roleDTO, newRole);
+			newRole.setCreatedDate(LocalDateTime.now());
+			newRole.setCreatedBy("current session user");
+			newRole.setModifiedDate(LocalDateTime.now());
+			newRole.setModifiedBy("current session user");
 			newRole = RoleRepo.save(newRole);
 			
 			if(role == null)
@@ -79,8 +89,12 @@ public class RoleServiceImpl<T> implements RoleService {
 					throw new DuplicateEntityException(role+" role already exists.");
 				}
 				
-				Role tempPlc = modelMapper.map(roleDTO, Role.class);
-				roles.add(tempPlc);
+				Role rl = modelMapper.map(roleDTO, Role.class);
+				rl.setCreatedDate(LocalDateTime.now());
+				rl.setCreatedBy("current session user");
+				rl.setModifiedDate(LocalDateTime.now());
+				rl.setModifiedBy("current session user");
+				roles.add(rl);
 			}
 
 			roles = RoleRepo.saveAll(roles);
@@ -105,12 +119,14 @@ public class RoleServiceImpl<T> implements RoleService {
 		try
 		{
 			Optional<Role> role = RoleRepo.findById(id);
-			if(role!=null)
+			if(role.isPresent())
+			{
+				return role;
+			}			
+			else
 			{
 				throw new EntityNotFoundException("Role with '"+id+"' not found");
 			}
-			
-			return role;
 		}
 		catch(Exception e)
 		{
@@ -119,24 +135,22 @@ public class RoleServiceImpl<T> implements RoleService {
 	}
 	
 
-//	@Override
-//	public <T> List<Role> searchByField(T fieldName,T fieldValue)
-//	{
-//		try
-//		{
-//			List<Role> roles = RoleRepo.searchByField(fieldName, fieldValue);
-//			if(roles==null)
-//			{
-//				throw new EntityNotFoundException("Role with '"+fieldName+"' '"+fieldValue+"' not found");
-//			}
-//			
-//			return roles;
-//		}
-//		catch(Exception e)
-//		{
-//			throw new EntityNotFoundException("Role with '"+fieldName+"' '"+fieldValue+"' not found");
-//		}
-//	}
+	@Override
+	public <T> List<Role> searchByField(String fieldName,T fieldValue)
+	{
+		try
+		{
+			String query = "SELECT * FROM role WHERE " + fieldName + " = ?";
+			 
+			 return entityManager.createNativeQuery(query, Role.class)
+                    .setParameter(1, fieldValue)
+                    .getResultList();
+		}
+		catch(Exception e)
+		{
+			throw new EntityNotFoundException("Role with '"+fieldName+"' '"+fieldValue+"' not found");
+		}
+	}
 	
 	
 	
@@ -170,11 +184,11 @@ public class RoleServiceImpl<T> implements RoleService {
 	
 	
 	@Override
-	public <T> Page<Role> findAllRoleInPages(int page, int size, T sortBy, String sortDir)
+	public <T> Page<Role> findAllRoleInPages(int page, int size, String sortBy, String sortDir)
 	{
 		try
 		{
-			Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(String.valueOf(sortBy)).ascending() : Sort.by(String.valueOf(sortBy)).descending();
+			Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 			Pageable pageable = PageRequest.of(page, size, sort);
 			return RoleRepo.findAll(pageable);
 					
@@ -217,22 +231,18 @@ public class RoleServiceImpl<T> implements RoleService {
 	
 	
 	@Override
-	public List<Role> updateAllRoles(List<Long> idList, List<RoleDTO> rolesDTO)
+	public List<Role> updateAllRoles(List<RoleDTO> rolesDTO)
 	{
 		try
 		{
-			if(idList.size() != rolesDTO.size())
-			{
-				throw new IllegalArgumentException("ID list & DTO list must have the same size");
-			}
 			
 			List<Role> roles = new ArrayList<>();
 			
-			for(int i=0; i<idList.size();i++)
+			for(int i=0; i<rolesDTO.size();i++)
 			{
-				final Long roleId = idList.get(i);
-				Role role = RoleRepo.findById(roleId).orElseThrow(() -> new EntityNotFoundException("No role found with ID "+roleId));
 				RoleDTO roleDTO = rolesDTO.get(i);
+				Long roleId = roleDTO.getId();
+				Role role = RoleRepo.findById(roleId).orElseThrow(() -> new EntityNotFoundException("No role found with ID "+roleId));
 				
 				if(roleDTO.getRole()!=null && !roleDTO.getRole().trim().isEmpty())
 				{
@@ -258,73 +268,52 @@ public class RoleServiceImpl<T> implements RoleService {
 		}
 	}
 	
+	@Override
+	public <T> List<Role> updateAllRoleBySingleField(String fieldName, T fieldValue)
+	{
+		
+		try
+		{
+			List<Role> roles = RoleRepo.findAll();
+
+			if (roles.isEmpty()) {
+	            throw new EntityNotFoundException("No placeTypes found to update");
+	        }
+			
+			for(Role role : roles)
+			{
+				setFieldValue(role, fieldName, fieldValue);
+				RoleRepo.save(role);
+			}
+			return roles;
+		}
+		catch(Exception e)
+		{
+			throw new SaveEntityException("Failed to update all role's "+fieldName+" with '"+fieldValue+"'");
+		}
+	}
 	
-//	@Override
-//	public <T> List<Role> updateAllRoleByFields(List<T> roleFieldList, List<T> roleValueList, List<RoleDTO> updateRolesDTO)
-//	{
-//		if(roleFieldList.size() != roleValueList.size() || roleValueList.size() != updateRolesDTO.size())
-//		{
-//			throw new IllegalArgumentException("ID list & DTO list must have the same size");
-//		}
-//		try
-//		{
-//			List<Role> updatedRoles = new ArrayList<>();
-//			
-//			for(int i=0;i<roleFieldList.size();i++)
-//			{
-//				T fieldName = roleFieldList.get(i);
-//				T fieldValue = roleValueList.get(i);
-//				RoleDTO roleDTO = updateRolesDTO.get(i);
-//				updatedRoles = searchByField(fieldName,fieldValue);
-//				modelMapper.map(roleDTO, updatedRoles.get(i));
-//				updatedRoles.add(RoleRepo.save(updatedRoles.get(i)));
-//				
-//				throw new EntityNotFoundException("No role found with "+fieldName+" : '"+fieldValue+"'");
-//		
-//			}
-//			
-//			return updatedRoles;
-//		}
-//		catch(Exception e)
-//		{
-//			throw new SaveEntityException("Failed to update given roles" +e.getMessage());
-//		}
-//	}
-	
-//	@Override
-//	public <T> List<Role> updateAllRoleBySingleField(T fieldName, T fieldValue)
-//	{
-//		
-//		try
-//		{
-//			List<Role> roles = RoleRepo.findAll();
-//			for(Role role : roles)
-//			{
-//				setFieldValue(role, fieldName, fieldValue);
-//				RoleRepo.save(role);
-//			}
-//			return roles;
-//		}
-//		catch(Exception e)
-//		{
-//			throw new SaveEntityException("Failed to update all role's "+fieldName+" with '"+fieldValue+"'");
-//		}
-//	}
-	
-//	@Override
-//	public <T> void setFieldValue(Role role, T fieldName, T fieldValue)
-//	{
-//		try
-//		{
-//			Field field = Role.class.getDeclaredField(fieldName.toString());
-//			field.setAccessible(true);
-//			field.set(role, fieldValue);
-//		}
-//		catch(NoSuchFieldException | IllegalAccessException e)
-//		{
-//			throw new IllegalArgumentException("Invalid field: "+fieldName);
-//		}
-//	}
+	@Override
+	public <T> void setFieldValue(Role role, String fieldName, T fieldValue)
+	{
+		try
+		{
+			Field field = Role.class.getDeclaredField(fieldName.toString());
+			field.setAccessible(true);
+			if (field.getType().isEnum()) {
+	            @SuppressWarnings("unchecked")
+	            Class<Enum> enumType = (Class<Enum>) field.getType();
+	            Enum enumValue = Enum.valueOf(enumType, fieldValue.toString());
+	            field.set(role, enumValue);
+	        } else {
+	            field.set(role, fieldValue);
+	        }
+		}
+		catch(NoSuchFieldException | IllegalAccessException e)
+		{
+			throw new IllegalArgumentException("Invalid field: "+fieldName);
+		}
+	}
  
 	@Override
 	public void deleteRoleById(Long id) {
@@ -352,32 +341,21 @@ public class RoleServiceImpl<T> implements RoleService {
 		
 	}
 
-//	@Override
-//	public <T> void deleteRoleByField(T fieldName, T fieldValue)
-//	{
-//		try
-//		{
-//			List<Role> roles = searchByField(fieldName, fieldValue);
-//			RoleRepo.deleteAll(roles);
-//		}
-//		catch(Exception e)
-//		{
-//			throw new IllegalArgumentException("Failed to delete role by "+fieldName+" : '"+fieldValue+"'");
-//		}
-//		
-//	}
+	@Override
+	public <T> void deleteRoleByField(String fieldName, T fieldValue)
+	{
+		try
+		{
+			List<Role> roles = searchByField(fieldName, fieldValue);
+			RoleRepo.deleteAll(roles);
+		}
+		catch(Exception e)
+		{
+			throw new IllegalArgumentException("Failed to delete role by "+fieldName+" : '"+fieldValue+"'");
+		}
+		
+	}
 	
-	
-	
-//	private Role DtoToRole(RoleDTO roleDTO) {
-//		Role role = modelMapper.map(roleDTO, Role.class);
-//		return role;
-//	}
-//	
-//	private RoleDTO CategoryToDto(Role role) {
-//		RoleDTO roleDTO = modelMapper.map(role, RoleDTO.class);
-//		return roleDTO;
-//	}
 	
 
 }

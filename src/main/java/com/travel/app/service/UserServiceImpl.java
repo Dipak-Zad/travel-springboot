@@ -15,13 +15,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.travel.app.dto.UserDTO;
-import com.travel.app.dto.UserDTO;
 import com.travel.app.exception.DuplicateEntityException;
 import com.travel.app.exception.SaveEntityException;
 import com.travel.app.model.User;
-import com.travel.app.model.User;
 import com.travel.app.repository.UserRepository;
 
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
@@ -29,6 +28,9 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	ModelMapper modelMapper;
+
+	@Autowired
+	private EntityManager entityManager;
 	
 	@Autowired
 	UserRepository userRepo;
@@ -47,6 +49,10 @@ public class UserServiceImpl implements UserService {
 			}
 			
 			user = modelMapper.map(userDTO, User.class);
+			user.setCreatedDate(LocalDateTime.now());
+			user.setCreatedBy("current session user");
+			user.setModifiedDate(LocalDateTime.now());
+			user.setModifiedBy("current session user");
 			user = userRepo.save(user);
 			
 			if(user == null)
@@ -58,14 +64,14 @@ public class UserServiceImpl implements UserService {
 		}
 		catch(Exception e)
 		{
-			throw new SaveEntityException("Failed to save place");
+			throw new SaveEntityException("Failed to save user");
 		}
 		
 	}
 
 	
 	@Override
-	public List<User> saveAllUSer(List<UserDTO> usersDTO) {
+	public List<User> saveAllUser(List<UserDTO> usersDTO) {
 		try
 		{
 			List<User> users = new ArrayList<User>();
@@ -76,6 +82,7 @@ public class UserServiceImpl implements UserService {
 				uName = usrDTO.getUserName();
 				uMail = usrDTO.getEmail();
 				OptUser = userRepo.findUserByNameAndMail(uName, uMail);
+				
 				if(OptUser.isPresent())
 				{
 					throw new DuplicateEntityException("User with name '"+usrDTO.getUserName()+
@@ -83,10 +90,15 @@ public class UserServiceImpl implements UserService {
 				}
 				
 				User tempPlc = modelMapper.map(usrDTO, User.class);
+				tempPlc.setCreatedDate(LocalDateTime.now());
+				tempPlc.setCreatedBy("current session user");
+				tempPlc.setModifiedDate(LocalDateTime.now());
+				tempPlc.setModifiedBy("current session user");
 				users.add(tempPlc);
 			}
 
 			users = userRepo.saveAll(users);
+			
 			if(users == null)
 			{
 				throw new SaveEntityException("Failed to save given users");	
@@ -106,12 +118,14 @@ public class UserServiceImpl implements UserService {
 		try
 		{
 			Optional<User> user = userRepo.findById(Id);
-			if(user==null)
+			if(user.isPresent())
+			{
+				return user;
+			}
+			else
 			{
 				throw new EntityNotFoundException("User with '"+Id+"' not found");	
 			}
-			
-			return user;
 		}
 		catch(Exception e)
 		{
@@ -120,23 +134,21 @@ public class UserServiceImpl implements UserService {
 	}
 
 	
-//	@Override
-//	public <T> List<User> findUserByField(T fieldName, T fieldValue) {
-//		try
-//		{
-//			List<User> users = userRepo.searchByField(fieldName, fieldValue);
-//			if(users==null)
-//			{
-//				throw new EntityNotFoundException("User with '"+fieldName+"' '"+fieldValue+"' not found");
-//			}
-//				
-//			return users;
-//		}
-//		catch(Exception e)
-//		{
-//			throw new EntityNotFoundException("User with '"+fieldName+"' '"+fieldValue+"' not found");
-//		}
-//	}
+	@Override
+	public <T> List<User> findUserByField(String fieldName, T fieldValue) {
+		try
+		{
+			String query = "SELECT * FROM users WHERE " + fieldName + " = ?";
+			 
+			return entityManager.createNativeQuery(query, User.class)
+                     .setParameter(1, fieldValue)
+                     .getResultList();
+		}
+		catch(Exception e)
+		{
+			throw new EntityNotFoundException("User with '"+fieldName+"' '"+fieldValue+"' not found");
+		}
+	}
 
 	
 	@Override
@@ -167,10 +179,10 @@ public class UserServiceImpl implements UserService {
 	
 
 	@Override
-	public <T> Page<User> findAllUserInPages(int pageNumber, int pageSize, T sortByField, String sortDirection) {
+	public <T> Page<User> findAllUserInPages(int pageNumber, int pageSize, String sortByField, String sortDirection) {
 		try
 		{
-			Sort sort = sortDirection.equalsIgnoreCase("asc") ? Sort.by(String.valueOf(sortByField)).ascending() : Sort.by(String.valueOf(sortByField)).descending();
+			Sort sort = sortDirection.equalsIgnoreCase("asc") ? Sort.by(sortByField).ascending() : Sort.by(sortByField).descending();
 			Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
 			return userRepo.findAll(pageable);
 					
@@ -235,19 +247,15 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public List<User> updateAllUsers(List<Long> idList, List<UserDTO> userDTOList) {
+	public List<User> updateAllUsers(List<UserDTO> userDTOList) {
 		try
 		{
-			if(idList.size() != userDTOList.size())
-			{
-				throw new IllegalArgumentException("ID list & DTO list must have the same size");
-			}
 			List<User> users = new ArrayList<>();
-			for(int i=0; i<idList.size();i++)
+			for(int i=0; i<userDTOList.size();i++)
 			{
-				final Long userId = idList.get(i);
-				User user = userRepo.findById(userId).orElseThrow(() -> new EntityNotFoundException("No user found with ID "+userId));
 				UserDTO userDTO = userDTOList.get(i);
+				Long userId = userDTO.getId();
+				User user = userRepo.findById(userId).orElseThrow(() -> new EntityNotFoundException("No user found with ID "+userId));
 				
 				if(userDTO.getUserName()!=null && !userDTO.getUserName().trim().isEmpty())
 				{
@@ -286,8 +294,10 @@ public class UserServiceImpl implements UserService {
 				
 				user.setModifiedDate(LocalDateTime.now());
 				user.setModifiedBy("new current session user");
+				
 				users.add(userRepo.save(user));		
 			}
+			
 			return users;
 		}
 		catch(Exception e)
@@ -295,73 +305,53 @@ public class UserServiceImpl implements UserService {
 			throw new SaveEntityException("Failed to update user");
 		}
 	}
-
-	
-//	@Override
-//	public <T> List<User> updateAllUserByFields(List<T> userFieldList, List<T> userValueList, List<UserDTO> userDTOList) {
-//		if(userFieldList.size() != userValueList.size() || userValueList.size() != userDTOList.size())
-//		{
-//			throw new IllegalArgumentException("ID list & DTO list must have the same size");
-//		}
-//		try
-//		{
-//			List<User> updatedUsers = new ArrayList<>();
-//			
-//			for(int i=0;i<userFieldList.size();i++)
-//			{
-//				T fieldName = userFieldList.get(i);
-//				T fieldValue = userValueList.get(i);
-//				UserDTO userDTO = userDTOList.get(i);
-//				updatedUsers = findUserByField(fieldName,fieldValue);
-//				modelMapper.map(userDTO, updatedUsers.get(i));
-//				updatedUsers.add(userRepo.save(updatedUsers.get(i)));
-//				
-//				throw new EntityNotFoundException("No user found with "+fieldName+" : '"+fieldValue+"'");
-//		
-//			}
-//			
-//			return updatedUsers;
-//		}
-//		catch(Exception e)
-//		{
-//			throw new SaveEntityException("Failed to update given users" +e.getMessage());
-//		}
-//	}
 	
 
-//	@Override
-//	public <T> List<User> updateAllUserBySingleField(T fieldName, T fieldValue) {
-//		try
-//		{
-//			List<User> users = userRepo.findAll();
-//			for(User user : users)
-//			{
-//				setFieldValue(user, fieldName, fieldValue);
-//				userRepo.save(user);
-//			}
-//			return users;
-//		}
-//		catch(Exception e)
-//		{
-//			throw new SaveEntityException("Failed to update all user's "+fieldName+" with '"+fieldValue+"'");
-//		}
-//	}
+	@Override
+	public <T> List<User> updateAllUserBySingleField(String fieldName, T fieldValue) {
+		try
+		{
+			List<User> users = userRepo.findAll();
+			
+			if (users.isEmpty()) {
+	            throw new EntityNotFoundException("No user found to update");
+	        }
+			
+			for(User user : users)
+			{
+				setFieldValue(user, fieldName, fieldValue);
+				userRepo.save(user);
+			}
+			return users;
+		}
+		catch(Exception e)
+		{
+			throw new SaveEntityException("Failed to update all user's "+fieldName+" with '"+fieldValue+"'");
+		}
+	}
 
 	
-//	@Override
-//	public <T> void setFieldValue(User user, T fieldName, T fieldValue) {
-//		try
-//		{
-//			Field field = User.class.getDeclaredField(fieldName.toString());
-//			field.setAccessible(true);
-//			field.set(user, fieldValue);
-//		}
-//		catch(NoSuchFieldException | IllegalAccessException e)
-//		{
-//			throw new IllegalArgumentException("Invalid field: "+fieldName);
-//		}
-//		
-//	}
+	@Override
+	public <T> void setFieldValue(User user, String fieldName, T fieldValue) {
+		try
+		{
+			Field field = User.class.getDeclaredField(fieldName.toString());
+			field.setAccessible(true);
+			if (field.getType().isEnum()) {
+	            @SuppressWarnings("unchecked")
+	            Class<Enum> enumType = (Class<Enum>) field.getType();
+	            Enum enumValue = Enum.valueOf(enumType, fieldValue.toString());
+	            field.set(user, enumValue);
+	        } else {
+	            field.set(user, fieldValue);
+	        }
+		}
+		catch(NoSuchFieldException | IllegalAccessException e)
+		{
+			throw new IllegalArgumentException("Invalid field: "+fieldName);
+		}
+		
+	}
 
 	
 	@Override
@@ -390,18 +380,18 @@ public class UserServiceImpl implements UserService {
 	}
 	
 
-//	@Override
-//	public <T> void deleteUserByField(T fieldName, T fieldValue) {
-//		try
-//		{
-//			List<User> users = findUserByField(fieldName, fieldValue);
-//			userRepo.deleteAll(users);
-//		}
-//		catch(Exception e)
-//		{
-//			throw new IllegalArgumentException("Failed to delete user by "+fieldName+" : '"+fieldValue+"'");
-//		}
-//		
-//	}
+	@Override
+	public <T> void deleteUserByField(String fieldName, T fieldValue) {
+		try
+		{
+			List<User> users = findUserByField(fieldName, fieldValue);
+			userRepo.deleteAll(users);
+		}
+		catch(Exception e)
+		{
+			throw new IllegalArgumentException("Failed to delete user by "+fieldName+" : '"+fieldValue+"'");
+		}
+		
+	}
 
 }
