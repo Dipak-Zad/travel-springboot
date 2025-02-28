@@ -52,6 +52,20 @@ public class ReviewController {
 		Optional<Review> review = ReviewServ.findReviewById(rv_id);
 		return ResponseEntity.ok(new ApiResponse<>("Success", "Review found", review));
 	}
+	
+	@GetMapping("/findReviewByUser/{u_id}")
+	public ResponseEntity<ApiResponse<List<Review>>> getReviewByUser(@PathVariable("u_id") Long id)
+	{
+		List<Review> review = ReviewServ.findReviewByUser(id);
+		return ResponseEntity.ok(new ApiResponse<>("Success", "Review found", review));
+	}
+	
+	@GetMapping("/findReviewByPlace/{p_id}")
+	public ResponseEntity<ApiResponse<List<Review>>> getReviewByPlace(@PathVariable("p_id") Long id)
+	{
+		List<Review> review = ReviewServ.findReviewByPlace(id);
+		return ResponseEntity.ok(new ApiResponse<>("Success", "Review found", review));
+	}
 
 	@GetMapping("/findReviewByField")
 	public <T> ResponseEntity<ApiResponse<List<Review>>> getReviewByField(@RequestParam("field_name") String fieldName, @RequestParam("field_value") T fieldValue)

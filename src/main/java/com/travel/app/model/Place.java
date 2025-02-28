@@ -10,6 +10,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.travel.app.enums.*;
 
 @Entity
@@ -27,6 +31,9 @@ public class Place {
 	@Column(nullable = false)
 	private Boolean availability; //true = avail/false = unavail
 
+	//@JsonIgnore
+	@JsonIgnoreProperties({"places"})
+//	/@JsonBackReference(value = "place-type")
 	@ManyToOne
 	@JoinColumn(name = "place_type_id")
 	private PlaceType placeType;
@@ -58,6 +65,8 @@ public class Place {
 	@Column(name="modified_by", nullable = false)
 	private String modifiedBy;
 	
+	//@JsonIgnore
+	@JsonManagedReference(value = "place-reviews")
 	@OneToMany(mappedBy = "place", cascade = CascadeType.ALL)
 	private List<Review> reviews = new ArrayList<>();
 

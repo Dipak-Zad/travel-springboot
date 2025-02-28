@@ -15,6 +15,7 @@ public interface UserService {
 	Optional<User> findUserById(Long Id);
 	<T> List<User> findUserByField(String fieldName, T fieldValue);
 	Optional<User> findUserByNameAndMail(String userName,String userMail);
+	Optional<User> findUserByRole(Long userRole);
 	List<User> findAllUsers();
 	<T> Page<User> findAllUserInPages(int pageNumber, int pageSize, String sortByField, String sortDirection);
 	User updateUser(Long id, UserDTO userDTO);

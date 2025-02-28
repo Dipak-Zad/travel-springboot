@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.travel.app.enums.Status;
 
 import jakarta.persistence.*;
@@ -19,10 +22,16 @@ public class Review {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	
+//	@JsonIgnore
+	//@JsonBackReference(value = "user-reviews")
+	@JsonIgnoreProperties({"reviews"})
 	@ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+//	@JsonIgnore
+	//@JsonBackReference(value = "place-reviews")
+	@JsonIgnoreProperties({"reviews"})
 	@ManyToOne
 	@JoinColumn(name = "place_id", nullable = false)
 	private Place place;

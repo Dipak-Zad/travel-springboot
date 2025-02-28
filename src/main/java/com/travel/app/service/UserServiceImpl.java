@@ -19,6 +19,8 @@ import com.travel.app.exception.DuplicateEntityException;
 import com.travel.app.exception.SaveEntityException;
 import com.travel.app.model.User;
 import com.travel.app.repository.UserRepository;
+import com.travel.app.model.Role;
+import com.travel.app.repository.RoleRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -34,6 +36,9 @@ public class UserServiceImpl implements UserService {
 	
 	@Autowired
 	UserRepository userRepo;
+	
+	@Autowired
+	RoleRepository roleRepo;
 	
 	@Override
 	public User saveSingleUser(UserDTO userDTO) {
@@ -152,14 +157,32 @@ public class UserServiceImpl implements UserService {
 
 	
 	@Override
-	public Optional<User> findUserByNameAndMail(String userName, String userRole) {
+	public Optional<User> findUserByNameAndMail(String userName, String userMail) {
 		try{
-			Optional<User> user = userRepo.findUserByNameAndMail(userName, userRole);
+			Optional<User> user = userRepo.findUserByNameAndMail(userName, userMail);
 			return user == null ? null : user;
 		}
 		catch(Exception e)
 		{
 			throw new EntityNotFoundException("User with username '"+userName+"' not found");
+		}
+	}
+	
+	
+	@Override
+	public Optional<User> findUserByRole(Long userRoleId) 
+	{
+		String Role = "";
+		try
+		{
+			Role role = roleRepo.findById(userRoleId).orElseThrow(() -> new EntityNotFoundException("No user role found with ID "+userRoleId));
+			Role = role.getRole();
+			Optional<User> user = userRepo.findUserByRole(userRoleId);
+			return user == null ? null : user;
+		}
+		catch(Exception e)
+		{
+			throw new EntityNotFoundException("User with role '"+Role+"' not found");
 		}
 	}
 	

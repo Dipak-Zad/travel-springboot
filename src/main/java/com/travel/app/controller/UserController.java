@@ -53,6 +53,13 @@ public class UserController {
 		return ResponseEntity.ok(new ApiResponse<>("Success", "User found", user));
 	}
 	
+	@GetMapping("/findUserByRole/{u_role}")
+	public ResponseEntity<ApiResponse<Optional<User>>> getUserByRole(@PathVariable("u_role") Long id)
+	{
+		Optional<User> user = UserServ.findUserByRole(id);
+		return ResponseEntity.ok(new ApiResponse<>("Success", "User found", user));
+	}
+	
 	@GetMapping("/findUserByField")
 	public <T> ResponseEntity<ApiResponse<List<User>>> getUserByField(@RequestParam("field_name") String fieldName, @RequestParam("field_value") T fieldValue)
 	{

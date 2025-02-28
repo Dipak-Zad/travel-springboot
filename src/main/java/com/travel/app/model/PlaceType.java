@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.travel.app.enums.*;
 
 @Entity
@@ -44,6 +45,7 @@ public class PlaceType {
 	@Column(name="modified_by", nullable = false)
 	private String modifiedBy;
 	
+	@JsonManagedReference(value = "place-type")
 	@OneToMany(mappedBy = "placeType", cascade = CascadeType.ALL)
 	private List<Place> places = new ArrayList<>();
 	

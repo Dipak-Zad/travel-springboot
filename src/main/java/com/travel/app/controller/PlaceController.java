@@ -55,6 +55,13 @@ public class PlaceController {
 		return ResponseEntity.ok(new ApiResponse<>("Success", "Place found", place));
 	}
 	
+	@GetMapping("/findPlaceByType/{p_type}")
+	public ResponseEntity<ApiResponse<Optional<Place>>> getPlaceByType(@PathVariable("p_type") Long id)
+	{
+		Optional<Place> place = PlaceServ.findPlaceByType(id);
+		return ResponseEntity.ok(new ApiResponse<>("Success", "Place found", place));
+	}
+	
 	@GetMapping("/findPlaceByField")
 	public <T> ResponseEntity<ApiResponse<List<Place>>> getPlaceByField(@RequestParam("field_name") String fieldName, @RequestParam("field_value") T fieldValue)
 	{

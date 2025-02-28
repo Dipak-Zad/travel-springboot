@@ -14,7 +14,9 @@ public interface ReviewService {
 	List<Review> saveAllReview(List<ReviewDTO> reviewsDTO);
 	Optional<Review> findReviewById(Long id);
 	<T> List<Review> findReviewByField(String fieldname,T fieldvalue);
-	Optional<Review> findReviewByUserAndPlace(Long userId, Long reviewId);
+	List<Review> findReviewByUserAndPlace(Long userId, Long placeId);
+	List<Review> findReviewByUser(Long userId);
+	List<Review> findReviewByPlace(Long placeId);
 	List<Review> findAllReviews();
 	<T> Page<Review> findAllReviewInPages(int pageNumber, int pageSize, String sortByField, String sortDirection);
 	Review updateReview(Long id, ReviewDTO reviewDTO);

@@ -1,7 +1,6 @@
 
 package com.travel.app.repository;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,6 +15,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	@Query("SELECT u from User u WHERE u.userName = :userName AND u.email = :userMail")
 	Optional<User> findUserByNameAndMail(@Param("userName") String userName, @Param("userMail") String userMail);
+	
+	@Query("SELECT u from User u WHERE u.role.id = :userRoleId")
+	Optional<User> findUserByRole(@Param("userRoleId") Long userRoleId);
 
 //	@Query(value = "SELECT * FROM Users WHERE ?1 LIKE %?2%", nativeQuery = true)
 //	<T> List<User> searchByField(T fieldName, T fieldValue);

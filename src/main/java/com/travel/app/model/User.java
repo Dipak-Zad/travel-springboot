@@ -1,5 +1,6 @@
 package com.travel.app.model;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,11 @@ import jakarta.validation.constraints.Email;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.travel.app.enums.*;
 
 @Entity
@@ -28,12 +34,17 @@ public class User {
 	@Column(nullable = false)
 	private String password;
 
+//	@JsonIgnore
+	//@JsonBackReference(value = "user-role")
+	@JsonIgnoreProperties({"users"})
 	@ManyToOne
 	@JoinColumn(name = "role_id", nullable = false)
 	private Role role;
 	
+	//@JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
+	@JsonFormat(pattern = "dd/MM/yyyy")
 	@Column(nullable = false)
-	private LocalDateTime dob;
+	private LocalDate dob;
 	
 	@Email
 	@Column(nullable = false, unique = true)
@@ -62,7 +73,9 @@ public class User {
 
     @Column(name="modified_by", nullable = false)
 	private String modifiedBy;
-	
+    
+    @JsonManagedReference(value = "user-reviews")
+    //@JsonIgnore
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 	private List<Review> reviews = new ArrayList<>();
 	

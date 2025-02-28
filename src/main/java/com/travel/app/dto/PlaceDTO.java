@@ -17,7 +17,7 @@ public class PlaceDTO {
 	
 	private Boolean availability;
 	
-	private String placeTypeId;
+	private Long placeTypeId;
 	
 	//private String timing;
 	

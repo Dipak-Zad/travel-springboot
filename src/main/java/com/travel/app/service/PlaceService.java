@@ -15,6 +15,7 @@ public interface PlaceService {
 	Optional<Place> findPlaceById(Long id);
 	<T> List<Place> findPlaceByField(String fieldname,T fieldvalue);
 	Optional<Place> findPlaceByNameAndAddress(String pName, String pAddress);
+	Optional<Place> findPlaceByType(Long TypeId);
 	List<Place> findAllPlaces();
 	<T> Page<Place> findAllPlaceInPages(int pageNumber, int pageSize, String sortByField, String sortDirection);
 	Place updatePlace(Long id, PlaceDTO placeDTO);

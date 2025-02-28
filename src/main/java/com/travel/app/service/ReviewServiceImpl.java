@@ -41,19 +41,25 @@ public class ReviewServiceImpl<T> implements ReviewService {
 	@Autowired
 	private ReviewRepository ReviewRepo;
 	
+	@Autowired
+	private UserRepository userRepo;
+	
+	@Autowired
+	private PlaceRepository placeRepo;
+	
 	@Override
 	public Review saveSingleReview(ReviewDTO reviewDTO)
 	{
 		try
 		{
-			Long userId = reviewDTO.getUserId();
-			Long placeId = reviewDTO.getPlaceId();
- 			Optional<Review> rCheck = ReviewRepo.findReviewByUserAndPlace(userId, placeId);
+			Long user = reviewDTO.getUserId();
+			Long place = reviewDTO.getPlaceId();
+			List<Review> rCheck = ReviewRepo.findReviewByUserAndPlace(user, place);
  			Review review = new Review();
 			
- 			if(rCheck.isPresent())
+ 			if(!rCheck.isEmpty())
 			{
-				throw new DuplicateEntityException(placeId+" review from '"+userId+"' already exists.");	
+				throw new DuplicateEntityException(place+" review from '"+user+"' already exists.");	
 			}
 			
 			review = modelMapper.map(reviewDTO, Review.class);
@@ -85,15 +91,15 @@ public class ReviewServiceImpl<T> implements ReviewService {
 		try
 		{
 			List<Review> reviews = new ArrayList<Review>();
-			Optional<Review> OptReview = null;
+			List<Review> ReviewList = null;
 			Long userId,placeId;
 			for(ReviewDTO reviewDTO : reviewsDTO)
 			{
 				userId = reviewDTO.getUserId();
 				placeId = reviewDTO.getPlaceId();
-				OptReview = ReviewRepo.findReviewByUserAndPlace(userId, placeId);
+				ReviewList = ReviewRepo.findReviewByUserAndPlace(userId, placeId);
 				
-				if(OptReview.isPresent())
+				if(!ReviewList.isEmpty())
 				{
 					throw new DuplicateEntityException(placeId+" review from '"+userId+"' already exists.");
 				}
@@ -167,16 +173,51 @@ public class ReviewServiceImpl<T> implements ReviewService {
 	
 	
 	@Override
-	public Optional<Review> findReviewByUserAndPlace(Long userId, Long reviewId)
+	public List<Review> findReviewByUserAndPlace(Long userId, Long reviewId)
 	{
 		try
 		{
-			Optional<Review> review = ReviewRepo.findReviewByUserAndPlace(userId, reviewId);
+			List<Review> review = ReviewRepo.findReviewByUserAndPlace(userId, reviewId);
 			return review == null ? null : review;
 		}
 		catch(Exception e)
 		{
 			throw new EntityNotFoundException(reviewId+" review from '"+userId+"' not found");
+		}
+	}
+	
+	@Override
+	public List<Review> findReviewByUser(Long userId)
+	{
+		String UserName = "";
+		try
+		{
+			User user = userRepo.findById(userId).orElseThrow(() -> new  EntityNotFoundException("user with '"+userId+"' not found")); 
+			UserName = user.getUserName();
+			List<Review> review = ReviewRepo.findReviewByUser(userId);
+			return review == null ? null : review;
+		}
+		catch(Exception e)
+		{
+			throw new EntityNotFoundException("review from '"+UserName+"' not found");
+		}
+	}
+	
+	@Override
+	public List<Review> findReviewByPlace(Long placeId)
+	{
+		String Place = "";
+		try
+		{
+			Place place = placeRepo.findById(placeId).orElseThrow(() -> new EntityNotFoundException("place with '"+placeId+"' not found"));
+			Place = place.getPlaceName();
+			List<Review> review = ReviewRepo.findReviewByPlace(placeId);
+			return review == null ? null : review;
+
+		}
+		catch(Exception e)
+		{
+			throw new EntityNotFoundException("review of '"+Place+"' not found");
 		}
 	}
 	
@@ -254,7 +295,7 @@ public class ReviewServiceImpl<T> implements ReviewService {
 		{
 			List<Review> reviews = new ArrayList<>();
 			
-			for(int i=0; i<reviews.size();i++)
+			for(int i=0; i<reviewsDTO.size();i++)
 			{
 				ReviewDTO reviewDTO = reviewsDTO.get(i);
 				Long reviewId = reviewDTO.getId();

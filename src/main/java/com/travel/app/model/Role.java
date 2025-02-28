@@ -10,6 +10,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.travel.app.enums.*;
 
 @Entity
@@ -42,6 +43,7 @@ public class Role {
     @Column(name="modified_by", nullable = false)
 	private String modifiedBy;
 	
+    @JsonManagedReference(value = "user-role")
 	@OneToMany(mappedBy = "role", cascade = CascadeType.ALL)
 	private List<User> users = new ArrayList<>();	
 }

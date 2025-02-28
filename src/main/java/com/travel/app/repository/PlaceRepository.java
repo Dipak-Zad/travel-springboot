@@ -17,6 +17,9 @@ public interface PlaceRepository extends JpaRepository<Place, Long> {
 	@Query("SELECT p FROM Place p WHERE p.placeName = :placeName AND p.placeAddress = :placeAddress")
 	Optional<Place> findPlaceByNameAndAddress(@Param("placeName") String placeName, @Param("placeAddress") String placeAddress);
 	
+	@Query("SELECT p FROM Place p WHERE p.placeType.id = :placeTypeId")
+	Optional<Place> findPlaceByType(@Param("placeTypeId") Long placeTypeId);
+	
 	//@Query(value = "SELECT * FROM Place WHERE ?1 LIKE %?2%", nativeQuery = true)
 	//<T> List<Place> searchByField(T fieldName, T fieldValue);
 	

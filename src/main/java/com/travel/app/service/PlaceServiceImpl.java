@@ -15,11 +15,13 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.travel.app.dto.PlaceDTO;
+import com.travel.app.dto.PlaceTypeDTO;
 import com.travel.app.exception.DuplicateEntityException;
 import com.travel.app.exception.SaveEntityException;
 import com.travel.app.model.Place;
 import com.travel.app.model.PlaceType;
 import com.travel.app.repository.PlaceRepository;
+import com.travel.app.repository.PlaceTypeRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -35,6 +37,9 @@ public class PlaceServiceImpl<T> implements PlaceService {
 	
 	@Autowired
 	private PlaceRepository PlaceRepo;
+	
+	@Autowired
+	private PlaceTypeRepository PlaceTypeRepo;
 	
 	
 	@Override
@@ -153,7 +158,7 @@ public class PlaceServiceImpl<T> implements PlaceService {
 		{
 			String query = "SELECT * FROM place WHERE " + fieldName + " = ?";
 			 
-			 return entityManager.createNativeQuery(query, PlaceType.class)
+			 return entityManager.createNativeQuery(query, Place.class)
                      .setParameter(1, fieldValue)
                      .getResultList();
 		}
@@ -175,6 +180,24 @@ public class PlaceServiceImpl<T> implements PlaceService {
 		catch(Exception e)
 		{
 			throw new EntityNotFoundException("Place with name '"+pLocation+"' not found");
+		}
+	}
+	
+	
+	@Override
+	public Optional<Place> findPlaceByType(Long placeTypeId)
+	{
+		String Type="";
+		try
+		{
+			PlaceType placeType = PlaceTypeRepo.findById(placeTypeId).orElseThrow(() -> new EntityNotFoundException("No place type found with ID "+placeTypeId));
+			Type = placeType.getType();
+			Optional<Place> place = PlaceRepo.findPlaceByType(placeTypeId);
+			return place == null ? null : place;
+		}
+		catch(Exception e)
+		{
+			throw new EntityNotFoundException("Place with type '"+Type+"' not found");
 		}
 	}
 	
