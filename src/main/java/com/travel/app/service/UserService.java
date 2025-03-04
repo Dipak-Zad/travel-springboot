@@ -6,22 +6,22 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 
 import com.travel.app.dto.UserDTO;
-import com.travel.app.model.User;
+import com.travel.app.model.Users;
 
 public interface UserService {
 
-	User saveSingleUser(UserDTO userDTO);
-	List<User> saveAllUser(List<UserDTO> usersDTO);
-	Optional<User> findUserById(Long Id);
-	<T> List<User> findUserByField(String fieldName, T fieldValue);
-	Optional<User> findUserByNameAndMail(String userName,String userMail);
-	Optional<User> findUserByRole(Long userRole);
-	List<User> findAllUsers();
-	<T> Page<User> findAllUserInPages(int pageNumber, int pageSize, String sortByField, String sortDirection);
-	User updateUser(Long id, UserDTO userDTO);
-	List<User> updateAllUsers(List<UserDTO> userDTOList);
-	<T> List<User> updateAllUserBySingleField(String fieldName, T fieldValue);
-	<T> void setFieldValue(User user, String fieldName, T fieldValue);
+	Users saveSingleUser(UserDTO userDTO);
+	List<Users> saveAllUser(List<UserDTO> usersDTO);
+	Optional<Users> findUserById(Long Id);
+	<T> List<Users> findUserByField(String fieldName, T fieldValue);
+	Optional<Users> findUserByNameAndMail(String userName,String userMail);
+	Optional<Users> findUserByRole(Long userRole);
+	List<Users> findAllUsers();
+	<T> Page<Users> findAllUserInPages(int pageNumber, int pageSize, String sortByField, String sortDirection);
+	Users updateUser(Long id, UserDTO userDTO);
+	List<Users> updateAllUsers(List<UserDTO> userDTOList);
+	<T> List<Users> updateAllUserBySingleField(String fieldName, T fieldValue);
+	<T> void setFieldValue(Users user, String fieldName, T fieldValue);
 	void deleteUserById(Long id);
 	void deleteAllUsers() throws Exception;
 	<T> void deleteUserByField(String fieldName, T fieldValue);

@@ -22,7 +22,7 @@ import com.travel.app.enums.*;
 @Entity
 @Table(name="users")
 @Data
-public class User {
+public class Users {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)

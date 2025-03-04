@@ -14,14 +14,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.travel.app.dto.PlaceDTO;
 import com.travel.app.dto.ReviewDTO;
 import com.travel.app.exception.DuplicateEntityException;
 import com.travel.app.exception.SaveEntityException;
 import com.travel.app.model.Place;
-import com.travel.app.model.PlaceType;
 import com.travel.app.model.Review;
-import com.travel.app.model.User;
+import com.travel.app.model.Users;
 import com.travel.app.repository.PlaceRepository;
 import com.travel.app.repository.ReviewRepository;
 import com.travel.app.repository.UserRepository;
@@ -192,7 +190,7 @@ public class ReviewServiceImpl<T> implements ReviewService {
 		String UserName = "";
 		try
 		{
-			User user = userRepo.findById(userId).orElseThrow(() -> new  EntityNotFoundException("user with '"+userId+"' not found")); 
+			Users user = userRepo.findById(userId).orElseThrow(() -> new  EntityNotFoundException("user with '"+userId+"' not found")); 
 			UserName = user.getUserName();
 			List<Review> review = ReviewRepo.findReviewByUser(userId);
 			return review == null ? null : review;
